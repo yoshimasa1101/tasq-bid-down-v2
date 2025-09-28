@@ -2,54 +2,41 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>逆オークション（MVP）</title>
+  <title>逆オークションMVP</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #f0f0f0; }
+    img { max-width: 80px; }
+    #result { margin-top: 20px; font-weight: bold; color: darkblue; }
+    #advice { margin-top: 10px; color: darkgreen; }
+  </style>
 </head>
 <body>
   <h1>逆オークション（MVP）</h1>
 
-  <!-- 商品リスト -->
-  <table border="1" cellpadding="5">
+  <h2>商品リスト</h2>
+  <table>
     <thead>
-      <tr>
-        <th>Bidder</th>
-        <th>商品名</th>
-        <th>価格</th>
-        <th>画像</th>
-      </tr>
+      <tr><th>商品名</th><th>価格</th><th>画像</th></tr>
     </thead>
     <tbody id="bidders"></tbody>
   </table>
 
-  <!-- 最安値の結果 -->
-  <div id="result" style="margin-top:10px; font-weight:bold; color:red;">
-    最安値を計算中...
-  </div>
+  <div id="result">落札値を計算中...</div>
 
-  <!-- 入札フォーム -->
-  <h2>あなたの入札</h2>
-  <input type="number" id="myBid" placeholder="金額を入力してください">
-  <select id="myItem">
-    <option value="ノートパソコン">ノートパソコン</option>
-    <option value="スマートフォン">スマートフォン</option>
-    <option value="デジタルカメラ">デジタルカメラ</option>
-    <option value="イヤホン">イヤホン</option>
-    <option value="腕時計">腕時計</option>
-  </select>
+  <h2>入札フォーム</h2>
+  <input type="text" id="myItem" placeholder="商品名を入力">
+  <input type="number" id="myBid" placeholder="入札金額を入力">
   <button onclick="submitBid()">入札する</button>
 
-  <!-- AIのコメント表示 -->
-  <div id="advice" style="margin-top:10px; color:blue;"></div>
+  <div id="advice"></div>
 
-  <!-- 入札履歴 -->
   <h2>入札履歴</h2>
-  <table border="1" cellpadding="5">
+  <table>
     <thead>
-      <tr>
-        <th>入札者</th>
-        <th>商品名</th>
-        <th>金額</th>
-        <th>時刻</th>
-      </tr>
+      <tr><th>入札者</th><th>商品名</th><th>金額</th><th>時刻</th></tr>
     </thead>
     <tbody id="history"></tbody>
   </table>
