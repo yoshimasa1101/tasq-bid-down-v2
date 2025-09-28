@@ -2,13 +2,9 @@ async function loadCSV() {
   const response = await fetch('auction_data.csv');
   const data = await response.text();
 
-  // CSVを行ごとに分割
   const rows = data.trim().split('\n').map(r => r.split(','));
-
-  // ヘッダーを除いたデータ部分
   const items = rows.slice(1);
 
-  // 商品リストを表示
   const list = document.getElementById('bidders');
   list.innerHTML = "";
   items.forEach(item => {
@@ -21,7 +17,6 @@ async function loadCSV() {
     list.appendChild(tr);
   });
 
-  // 最安値を探す
   let minItem = items[0];
   for (let i = 1; i < items.length; i++) {
     if (parseInt(items[i][1]) < parseInt(minItem[1])) {
@@ -29,11 +24,17 @@ async function loadCSV() {
     }
   }
 
-  // 結果を表示
   document.getElementById('result').innerText =
     `落札値は「${minItem[0]}」で ${minItem[1]}円 です`;
 
-  // グローバル変数に保存
+  // 最安値の商品を強調表示
+  const rowsInTable = document.querySelectorAll("#bidders tr");
+  rowsInTable.forEach(tr => {
+    if (tr.children[0].innerText === minItem[0] && tr.children[1].innerText.includes(minItem[1])) {
+      tr.classList.add("highlight");
+    }
+  });
+
   window.auctionItems = items;
   window.minItem = minItem;
 }
@@ -63,7 +64,6 @@ function submitBid() {
 
   document.getElementById('advice').innerText = advice;
 
-  // 入札履歴に追加
   const history = document.getElementById('history');
   const tr = document.createElement('tr');
   const now = new Date().toLocaleString();
