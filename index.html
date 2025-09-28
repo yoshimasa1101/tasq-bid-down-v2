@@ -8,10 +8,21 @@
   <h1>逆オークション（MVP）</h1>
 
   <!-- CSVから商品リストを生成する場所 -->
-  <ul id="bidders"></ul>
+  <table border="1" cellpadding="5">
+    <thead>
+      <tr>
+        <th>Bidder</th>
+        <th>商品名</th>
+        <th>価格</th>
+      </tr>
+    </thead>
+    <tbody id="bidders"></tbody>
+  </table>
 
   <!-- 最安値の結果 -->
-  <div id="result">最安値を計算中...</div>
+  <div id="result" style="margin-top:10px; font-weight:bold; color:red;">
+    最安値を計算中...
+  </div>
 
   <!-- 入札フォーム -->
   <h2>あなたの入札</h2>
