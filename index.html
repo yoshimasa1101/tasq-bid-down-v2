@@ -4,13 +4,71 @@
   <meta charset="UTF-8">
   <title>逆オークションMVP</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #f0f0f0; }
-    img { max-width: 80px; }
-    #result { margin-top: 20px; font-weight: bold; color: darkblue; }
-    #advice { margin-top: 10px; color: darkgreen; }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      margin: 20px auto;
+      max-width: 900px;
+      background: #f9fafc;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #005bbb;
+      margin-bottom: 30px;
+    }
+    h2 {
+      border-left: 6px solid #005bbb;
+      padding-left: 10px;
+      margin-top: 40px;
+      color: #222;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+      background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #005bbb;
+      color: #fff;
+    }
+    tr:nth-child(even) {
+      background: #f2f6fc;
+    }
+    .highlight {
+      background: #ffeaa7 !important;
+      font-weight: bold;
+    }
+    button {
+      background: linear-gradient(90deg, #005bbb, #0077ff);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #0077ff, #0099ff);
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+      color: darkblue;
+    }
+    #advice {
+      margin-top: 10px;
+      color: darkgreen;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
