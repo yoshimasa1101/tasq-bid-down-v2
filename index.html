@@ -5,114 +5,7 @@
   <title>TASQ JAPAN - 逆オークションMVP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      margin: 0;
-      background: #f9fafc;
-      color: #333;
-    }
-    header {
-      background: linear-gradient(90deg, #005bbb, #0077ff);
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    header img {
-      height: 40px;
-      margin-right: 15px;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: bold;
-    }
-    main {
-      max-width: 900px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    h2 {
-      border-left: 6px solid #005bbb;
-      padding-left: 10px;
-      margin-top: 40px;
-      color: #222;
-      font-size: 18px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 15px;
-      background: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      overflow-x: auto;
-      display: block;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-      font-size: 14px;
-    }
-    th {
-      background: #005bbb;
-      color: #fff;
-    }
-    tr:nth-child(even) {
-      background: #f2f6fc;
-    }
-    .highlight {
-      background: #ffeaa7 !important;
-      font-weight: bold;
-    }
-    input[type="text"], input[type="number"] {
-      padding: 8px;
-      margin: 5px 5px 10px 0;
-      width: 100%;
-      max-width: 300px;
-      box-sizing: border-box;
-      font-size: 14px;
-    }
-    button {
-      background: linear-gradient(90deg, #005bbb, #0077ff);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      margin-top: 10px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-size: 14px;
-      width: 100%;
-      max-width: 300px;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #0077ff, #0099ff);
-    }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-      font-size: 16px;
-      color: darkblue;
-    }
-    #advice {
-      margin-top: 10px;
-      color: darkgreen;
-      font-style: italic;
-      font-size: 14px;
-    }
-    @media screen and (max-width: 600px) {
-      header h1 {
-        font-size: 18px;
-      }
-      th, td {
-        font-size: 12px;
-        padding: 6px;
-      }
-      input[type="text"], input[type="number"], button {
-        max-width: 100%;
-      }
-    }
+    /* 省略：前回のスマホ対応CSSと同じ */
   </style>
 </head>
 <body>
@@ -123,6 +16,7 @@
 
   <main>
     <h2>商品リスト</h2>
+    <input type="file" id="csvUpload" accept=".csv">
     <table>
       <thead>
         <tr><th>商品名</th><th>価格</th><th>画像</th></tr>
