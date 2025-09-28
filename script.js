@@ -1,104 +1,88 @@
-let auctionItems = [];
-let minItem = null;
+let items = [];
 
-function parseCSV(text) {
-  const rows = text.trim().split('\n').map(r => r.split(','));
-  auctionItems = rows.slice(1);
-  renderTable();
-  findMin();
-}
+function renderProducts(category = "すべて") {
+  const container = document.getElementById("productList");
+  container.innerHTML = "";
 
-function renderTable() {
-  const list = document.getElementById('bidders');
-  list.innerHTML = "";
-  auctionItems.forEach(item => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${item[0]}</td>
-      <td>${item[1]}円</td>
-      <td><img src="${item[2]}" alt="${item[0]}" width="80"></td>
+  const filtered = category === "すべて" ? items : items.filter(i => i.category === category);
+
+  filtered.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <img src="${item.image}" alt="${item.name}">
+      <div class="card-content">
+        <h3>${item.name}</h3>
+        <p>ブランド: ${item.brand}</p>
+        <p>価格: ${item.price}円</p>
+        <input type="number" placeholder="入札金額" id="bid-${item.id}">
+        <button onclick="placeBid('${item.id}')">入札する</button>
+      </div>
     `;
-    list.appendChild(tr);
+    container.appendChild(card);
   });
 }
 
-function findMin() {
-  minItem = auctionItems[0];
-  for (let i = 1; i < auctionItems.length; i++) {
-    if (parseInt(auctionItems[i][1]) < parseInt(minItem[1])) {
-      minItem = auctionItems[i];
-    }
-  }
-  document.getElementById('result').innerText =
-    `落札値は「${minItem[0]}」で ${minItem[1]}円 です`;
-
-  const rowsInTable = document.querySelectorAll("#bidders tr");
-  rowsInTable.forEach(tr => {
-    if (tr.children[0].innerText === minItem[0] && tr.children[1].innerText.includes(minItem[1])) {
-      tr.classList.add("highlight");
-    }
-  });
-}
-
-function submitBid() {
-  const myBid = parseInt(document.getElementById('myBid').value);
-  const myItem = document.getElementById('myItem').value;
-
-  if (isNaN(myBid) || myItem.trim() === "") {
-    document.getElementById('advice').innerText = "商品名と金額を入力してください。";
-    return;
-  }
-
-  const avgPrice = auctionItems.reduce((sum, item) => sum + parseInt(item[1]), 0) / auctionItems.length;
-
-  let advice = `あなたの入札は ${myItem} に ${myBid}円です。`;
-  advice += ` 平均価格は約 ${Math.round(avgPrice)}円、最安値は「${minItem[0]}」 (${minItem[1]}円)。`;
-
-  if (myBid < minItem[1]) {
-    advice += " 🎉 あなたの入札が新しい最安値です！";
-  } else if (myBid < avgPrice) {
-    advice += " 👍 平均より安く、妥当な入札です。";
-  } else {
-    advice += " 🤔 平均より高めなので、再検討をおすすめします。";
-  }
-
-  document.getElementById('advice').innerText = advice;
+function placeBid(id) {
+  const item = items.find(i => i.id === id);
+  const bidValue = parseInt(document.getElementById(`bid-${id}`).value);
+  if (isNaN(bidValue)) return alert("金額を入力してください");
 
   const now = new Date().toLocaleString();
   const entry = {
     bidder: "あなた",
-    item: myItem,
-    bid: myBid,
+    name: item.name,
+    brand: item.brand,
+    bid: bidValue,
     time: now
   };
 
-  saveBid(entry);
-  renderHistory();
-}
-
-function saveBid(entry) {
   const history = JSON.parse(localStorage.getItem("bidHistory") || "[]");
   history.push(entry);
   localStorage.setItem("bidHistory", JSON.stringify(history));
+  renderHistory();
 }
 
 function renderHistory() {
   const history = JSON.parse(localStorage.getItem("bidHistory") || "[]");
-  const table = document.getElementById('history');
-  table.innerHTML = "";
+  const tbody = document.getElementById("historyBody");
+  tbody.innerHTML = "";
   history.forEach(entry => {
-    const tr = document.createElement('tr');
+    const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${entry.bidder}</td>
-      <td>${entry.item}</td>
+      <td>${entry.name}</td>
+      <td>${entry.brand}</td>
       <td>${entry.bid}円</td>
       <td>${entry.time}</td>
     `;
-    table.appendChild(tr);
+    tbody.appendChild(tr);
   });
 }
 
-document.getElementById('csvUpload').addEventListener('change', function (e) {
+function parseCSV(text) {
+  const rows = text.trim().split('\n').map(r => r.split(','));
+  const headers = rows[0];
+  const data = rows.slice(1);
+
+  items = data.map((r, i) => ({
+    id: "item" + i,
+    category: r[0],
+    brand: r[1],
+    name: r[2],
+    price: r[3],
+    image: r[4]
+  }));
+
+  const categories = [...new Set(items.map(i => i.category))];
+  const select = document.getElementById("categoryFilter");
+  select.innerHTML = `<option value="すべて">すべて</option>` + categories.map(c => `<option value="${c}">${c}</option>`).join("");
+  select.onchange = () => renderProducts(select.value);
+
+  renderProducts();
+}
+
+document.getElementById("csvUpload").addEventListener("change", function (e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -108,10 +92,4 @@ document.getElementById('csvUpload').addEventListener('change', function (e) {
   reader.readAsText(file);
 });
 
-// 初期読み込み
-fetch('auction_data.csv')
-  .then(res => res.text())
-  .then(text => {
-    parseCSV(text);
-    renderHistory();
-  });
+renderHistory();
