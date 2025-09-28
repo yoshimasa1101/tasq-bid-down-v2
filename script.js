@@ -12,7 +12,7 @@ async function loadCSV() {
     tr.innerHTML = `
       <td>${item[0]}</td>
       <td>${item[1]}円</td>
-      <td><img src="${item[2]}" alt="${item[0]}"></td>
+      <td><img src="${item[2]}" alt="${item[0]}" width="80"></td>
     `;
     list.appendChild(tr);
   });
@@ -27,7 +27,6 @@ async function loadCSV() {
   document.getElementById('result').innerText =
     `落札値は「${minItem[0]}」で ${minItem[1]}円 です`;
 
-  // 最安値の商品を強調表示
   const rowsInTable = document.querySelectorAll("#bidders tr");
   rowsInTable.forEach(tr => {
     if (tr.children[0].innerText === minItem[0] && tr.children[1].innerText.includes(minItem[1])) {
