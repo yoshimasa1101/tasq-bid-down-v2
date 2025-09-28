@@ -1,0 +1,6 @@
+Lowest Bid Result
+Bidder: B
+Price: ¥950
+Lowest Bid Result
+Bidder: B
+Price: ¥950

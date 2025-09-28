@@ -1,0 +1,4 @@
+bidder,price
+A,1000
+B,950
+C,1200
