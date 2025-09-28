@@ -7,13 +7,14 @@
 <body>
   <h1>逆オークション（MVP）</h1>
 
-  <!-- CSVから商品リストを生成する場所 -->
+  <!-- 商品リスト -->
   <table border="1" cellpadding="5">
     <thead>
       <tr>
         <th>Bidder</th>
         <th>商品名</th>
         <th>価格</th>
+        <th>画像</th>
       </tr>
     </thead>
     <tbody id="bidders"></tbody>
@@ -31,6 +32,10 @@
 
   <!-- AIのコメント表示 -->
   <div id="advice" style="margin-top:10px; color:blue;"></div>
+
+  <!-- 入札履歴 -->
+  <h2>入札履歴</h2>
+  <ul id="history"></ul>
 
   <script src="script.js"></script>
 </body>
