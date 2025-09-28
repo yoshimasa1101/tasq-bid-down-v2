@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -8,16 +7,12 @@
 <body>
   <h1>逆オークション（MVP）</h1>
 
-  <ul>
-    <li>Bidder A: 1200円</li>
-    <li>Bidder B: 950円</li>
-    <li>Bidder C: 1100円</li>
-  </ul>
+  <!-- CSVから商品リストを生成する場所 -->
+  <ul id="bidders"></ul>
 
-  <!-- AI連携の第一歩：CSVから最安値を自動判定 -->
+  <!-- 最安値の結果 -->
   <div id="result">最安値を計算中...</div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
