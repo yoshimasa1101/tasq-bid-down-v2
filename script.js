@@ -65,11 +65,17 @@ function submitBid() {
 
   document.getElementById('advice').innerText = advice;
 
-  // 入札履歴に追加（商品名＋価格）
+  // 入札履歴に追加（商品名＋価格＋時刻）
   const history = document.getElementById('history');
-  const li = document.createElement('li');
-  li.textContent = `あなたの入札: ${myItem} に ${myBid}円`;
-  history.appendChild(li);
+  const tr = document.createElement('tr');
+  const now = new Date().toLocaleString(); // 現在時刻を取得
+  tr.innerHTML = `
+    <td>あなた</td>
+    <td>${myItem}</td>
+    <td>${myBid}円</td>
+    <td>${now}</td>
+  `;
+  history.appendChild(tr);
 }
 
 loadCSV();
