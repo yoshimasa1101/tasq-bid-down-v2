@@ -1,13 +1,17 @@
-async function loadCSV() {
-  const response = await fetch('auction_data.csv');
-  const data = await response.text();
+let auctionItems = [];
+let minItem = null;
 
-  const rows = data.trim().split('\n').map(r => r.split(','));
-  const items = rows.slice(1);
+function parseCSV(text) {
+  const rows = text.trim().split('\n').map(r => r.split(','));
+  auctionItems = rows.slice(1);
+  renderTable();
+  findMin();
+}
 
+function renderTable() {
   const list = document.getElementById('bidders');
   list.innerHTML = "";
-  items.forEach(item => {
+  auctionItems.forEach(item => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${item[0]}</td>
@@ -16,14 +20,15 @@ async function loadCSV() {
     `;
     list.appendChild(tr);
   });
+}
 
-  let minItem = items[0];
-  for (let i = 1; i < items.length; i++) {
-    if (parseInt(items[i][1]) < parseInt(minItem[1])) {
-      minItem = items[i];
+function findMin() {
+  minItem = auctionItems[0];
+  for (let i = 1; i < auctionItems.length; i++) {
+    if (parseInt(auctionItems[i][1]) < parseInt(minItem[1])) {
+      minItem = auctionItems[i];
     }
   }
-
   document.getElementById('result').innerText =
     `落札値は「${minItem[0]}」で ${minItem[1]}円 です`;
 
@@ -33,9 +38,6 @@ async function loadCSV() {
       tr.classList.add("highlight");
     }
   });
-
-  window.auctionItems = items;
-  window.minItem = minItem;
 }
 
 function submitBid() {
@@ -47,8 +49,7 @@ function submitBid() {
     return;
   }
 
-  const avgPrice = window.auctionItems.reduce((sum, item) => sum + parseInt(item[1]), 0) / window.auctionItems.length;
-  const minItem = window.minItem;
+  const avgPrice = auctionItems.reduce((sum, item) => sum + parseInt(item[1]), 0) / auctionItems.length;
 
   let advice = `あなたの入札は ${myItem} に ${myBid}円です。`;
   advice += ` 平均価格は約 ${Math.round(avgPrice)}円、最安値は「${minItem[0]}」 (${minItem[1]}円)。`;
@@ -63,16 +64,54 @@ function submitBid() {
 
   document.getElementById('advice').innerText = advice;
 
-  const history = document.getElementById('history');
-  const tr = document.createElement('tr');
   const now = new Date().toLocaleString();
-  tr.innerHTML = `
-    <td>あなた</td>
-    <td>${myItem}</td>
-    <td>${myBid}円</td>
-    <td>${now}</td>
-  `;
-  history.appendChild(tr);
+  const entry = {
+    bidder: "あなた",
+    item: myItem,
+    bid: myBid,
+    time: now
+  };
+
+  saveBid(entry);
+  renderHistory();
 }
 
-loadCSV();
+function saveBid(entry) {
+  const history = JSON.parse(localStorage.getItem("bidHistory") || "[]");
+  history.push(entry);
+  localStorage.setItem("bidHistory", JSON.stringify(history));
+}
+
+function renderHistory() {
+  const history = JSON.parse(localStorage.getItem("bidHistory") || "[]");
+  const table = document.getElementById('history');
+  table.innerHTML = "";
+  history.forEach(entry => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${entry.bidder}</td>
+      <td>${entry.item}</td>
+      <td>${entry.bid}円</td>
+      <td>${entry.time}</td>
+    `;
+    table.appendChild(tr);
+  });
+}
+
+document.getElementById('csvUpload').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    parseCSV(event.target.result);
+  };
+  reader.readAsText(file);
+});
+
+// 初期読み込み
+fetch('auction_data.csv')
+  .then(res => res.text())
+  .then(text => {
+    parseCSV(text);
+    renderHistory();
+  });
