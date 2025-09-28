@@ -13,8 +13,10 @@
   <!-- 最安値の結果 -->
   <div id="result">最安値を計算中...</div>
 
-  <!-- 入札ボタン -->
-  <button onclick="getAdvice()">AIに入札アドバイスを聞く</button>
+  <!-- 入札フォーム -->
+  <h2>あなたの入札</h2>
+  <input type="number" id="myBid" placeholder="金額を入力してください">
+  <button onclick="submitBid()">入札する</button>
 
   <!-- AIのコメント表示 -->
   <div id="advice" style="margin-top:10px; color:blue;"></div>
