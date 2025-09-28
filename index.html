@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>TASQ JAPAN - 逆オークションMVP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
@@ -16,6 +17,7 @@
       padding: 15px 20px;
       display: flex;
       align-items: center;
+      flex-wrap: wrap;
     }
     header img {
       height: 40px;
@@ -36,6 +38,7 @@
       padding-left: 10px;
       margin-top: 40px;
       color: #222;
+      font-size: 18px;
     }
     table {
       border-collapse: collapse;
@@ -43,11 +46,14 @@
       margin-top: 15px;
       background: #fff;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      display: block;
     }
     th, td {
       border: 1px solid #ddd;
       padding: 10px;
       text-align: center;
+      font-size: 14px;
     }
     th {
       background: #005bbb;
@@ -60,6 +66,14 @@
       background: #ffeaa7 !important;
       font-weight: bold;
     }
+    input[type="text"], input[type="number"] {
+      padding: 8px;
+      margin: 5px 5px 10px 0;
+      width: 100%;
+      max-width: 300px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
     button {
       background: linear-gradient(90deg, #005bbb, #0077ff);
       color: white;
@@ -69,6 +83,8 @@
       cursor: pointer;
       border-radius: 5px;
       font-size: 14px;
+      width: 100%;
+      max-width: 300px;
     }
     button:hover {
       background: linear-gradient(90deg, #0077ff, #0099ff);
@@ -76,18 +92,30 @@
     #result {
       margin-top: 20px;
       font-weight: bold;
-      font-size: 18px;
+      font-size: 16px;
       color: darkblue;
     }
     #advice {
       margin-top: 10px;
       color: darkgreen;
       font-style: italic;
+      font-size: 14px;
+    }
+    @media screen and (max-width: 600px) {
+      header h1 {
+        font-size: 18px;
+      }
+      th, td {
+        font-size: 12px;
+        padding: 6px;
+      }
+      input[type="text"], input[type="number"], button {
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- ブランドロゴ付きヘッダー -->
   <header>
     <img src="logo.png" alt="TASQ JAPAN ロゴ">
     <h1>TASQ JAPAN - 逆オークションMVP</h1>
