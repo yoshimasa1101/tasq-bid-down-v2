@@ -62,7 +62,6 @@ function renderHistory() {
 
 function parseCSV(text) {
   const rows = text.trim().split('\n').map(r => r.split(','));
-  const headers = rows[0];
   const data = rows.slice(1);
 
   items = data.map((r, i) => ({
