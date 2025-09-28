@@ -10,6 +10,7 @@ async function loadCSV() {
 
   // HTMLにリスト表示
   const list = document.getElementById('bidders');
+  list.innerHTML = ""; // 初期化
   items.forEach(item => {
     const li = document.createElement('li');
     li.textContent = `Bidder ${item[0]}: ${item[1]}円`;
@@ -33,22 +34,26 @@ async function loadCSV() {
   window.minItem = minItem;
 }
 
-// AI風アドバイス機能
-function getAdvice() {
-  if (!window.auctionItems) return;
+// 入札フォームからの入力を評価
+function submitBid() {
+  const myBid = parseInt(document.getElementById('myBid').value);
+  if (isNaN(myBid)) {
+    document.getElementById('advice').innerText = "金額を入力してください。";
+    return;
+  }
 
   const avgPrice = window.auctionItems.reduce((sum, item) => sum + parseInt(item[1]), 0) / window.auctionItems.length;
   const minItem = window.minItem;
 
-  let advice = `平均価格は約 ${Math.round(avgPrice)}円です。`;
-  advice += ` 最安値は Bidder ${minItem[0]}（${minItem[1]}円）。`;
+  let advice = `あなたの入札は ${myBid}円です。`;
+  advice += ` 平均価格は約 ${Math.round(avgPrice)}円、最安値は Bidder ${minItem[0]}（${minItem[1]}円）。`;
 
-  if (parseInt(minItem[1]) < avgPrice * 0.8) {
-    advice += " この入札はかなり有利です！";
-  } else if (parseInt(minItem[1]) > avgPrice) {
-    advice += " この入札は少し割高かもしれません。";
+  if (myBid < minItem[1]) {
+    advice += " 🎉 あなたの入札が新しい最安値です！";
+  } else if (myBid < avgPrice) {
+    advice += " 👍 平均より安く、妥当な入札です。";
   } else {
-    advice += " この入札は妥当な範囲です。";
+    advice += " 🤔 平均より高めなので、再検討をおすすめします。";
   }
 
   document.getElementById('advice').innerText = advice;
