@@ -30,9 +30,9 @@ async function loadCSV() {
     }
   }
 
-  // 結果を画面に表示
+  // 結果を画面に表示（商品名＋金額）
   document.getElementById('result').innerText =
-    `最安値は Bidder ${minItem[0]} の「${minItem[1]}」 (${minItem[2]}円) です`;
+    `落札値は「${minItem[1]}」で ${minItem[2]}円 です`;
 
   // グローバル変数に保存（AIアドバイス用）
   window.auctionItems = items;
@@ -53,7 +53,7 @@ function submitBid() {
   const minItem = window.minItem;
 
   let advice = `あなたの入札は ${myItem} に ${myBid}円です。`;
-  advice += ` 平均価格は約 ${Math.round(avgPrice)}円、最安値は Bidder ${minItem[0]} の「${minItem[1]}」 (${minItem[2]}円)。`;
+  advice += ` 平均価格は約 ${Math.round(avgPrice)}円、最安値は「${minItem[1]}」 (${minItem[2]}円)。`;
 
   if (myBid < minItem[2]) {
     advice += " 🎉 あなたの入札が新しい最安値です！";
