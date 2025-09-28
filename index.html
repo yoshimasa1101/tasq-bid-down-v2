@@ -6,15 +6,30 @@
   <style>
     body {
       font-family: "Segoe UI", Arial, sans-serif;
-      margin: 20px auto;
-      max-width: 900px;
+      margin: 0;
       background: #f9fafc;
       color: #333;
     }
-    h1 {
-      text-align: center;
-      color: #005bbb;
-      margin-bottom: 30px;
+    header {
+      background: linear-gradient(90deg, #005bbb, #0077ff);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+    }
+    header img {
+      height: 40px;
+      margin-right: 15px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: bold;
+    }
+    main {
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 0 15px;
     }
     h2 {
       border-left: 6px solid #005bbb;
@@ -72,32 +87,38 @@
   </style>
 </head>
 <body>
-  <h1>逆オークション（MVP）</h1>
+  <!-- ブランドロゴ付きヘッダー -->
+  <header>
+    <img src="https://copilot.microsoft.com/th/id/BCO.19b1faab-4e73-4d8e-ad76-eef4548f40a9.png" alt="逆オークションMVPロゴ">
+    <h1>逆オークションMVP</h1>
+  </header>
 
-  <h2>商品リスト</h2>
-  <table>
-    <thead>
-      <tr><th>商品名</th><th>価格</th><th>画像</th></tr>
-    </thead>
-    <tbody id="bidders"></tbody>
-  </table>
+  <main>
+    <h2>商品リスト</h2>
+    <table>
+      <thead>
+        <tr><th>商品名</th><th>価格</th><th>画像</th></tr>
+      </thead>
+      <tbody id="bidders"></tbody>
+    </table>
 
-  <div id="result">落札値を計算中...</div>
+    <div id="result">落札値を計算中...</div>
 
-  <h2>入札フォーム</h2>
-  <input type="text" id="myItem" placeholder="商品名を入力">
-  <input type="number" id="myBid" placeholder="入札金額を入力">
-  <button onclick="submitBid()">入札する</button>
+    <h2>入札フォーム</h2>
+    <input type="text" id="myItem" placeholder="商品名を入力">
+    <input type="number" id="myBid" placeholder="入札金額を入力">
+    <button onclick="submitBid()">入札する</button>
 
-  <div id="advice"></div>
+    <div id="advice"></div>
 
-  <h2>入札履歴</h2>
-  <table>
-    <thead>
-      <tr><th>入札者</th><th>商品名</th><th>金額</th><th>時刻</th></tr>
-    </thead>
-    <tbody id="history"></tbody>
-  </table>
+    <h2>入札履歴</h2>
+    <table>
+      <thead>
+        <tr><th>入札者</th><th>商品名</th><th>金額</th><th>時刻</th></tr>
+      </thead>
+      <tbody id="history"></tbody>
+    </table>
+  </main>
 
   <script src="script.js"></script>
 </body>
