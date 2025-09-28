@@ -5,7 +5,93 @@
   <title>TASQ JAPAN - 逆オークションMVP</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* 省略：前回のスマホ対応CSSと同じ */
+    body {
+      font-family: "Segoe UI", sans-serif;
+      margin: 0;
+      background: #f9fafc;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(90deg, #005bbb, #0077ff);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+    }
+    header img {
+      height: 40px;
+      margin-right: 15px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+    main {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    select, input[type="number"] {
+      padding: 8px;
+      margin: 10px 0;
+      font-size: 14px;
+      width: 100%;
+      max-width: 300px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px 0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .card img {
+      width: 100px;
+      height: auto;
+      margin-right: 15px;
+    }
+    .card-content {
+      flex: 1;
+    }
+    .card-content h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .card-content p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .card-content input {
+      margin-top: 5px;
+    }
+    .card-content button {
+      background: #0077ff;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      margin-top: 5px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #history {
+      margin-top: 30px;
+    }
+    #history table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    #history th, #history td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    #csvUpload {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -15,31 +101,24 @@
   </header>
 
   <main>
-    <h2>商品リスト</h2>
+    <h2>カテゴリ選択</h2>
+    <select id="categoryFilter">
+      <option value="すべて">すべて</option>
+    </select>
+
     <input type="file" id="csvUpload" accept=".csv">
-    <table>
-      <thead>
-        <tr><th>商品名</th><th>価格</th><th>画像</th></tr>
-      </thead>
-      <tbody id="bidders"></tbody>
-    </table>
 
-    <div id="result">落札値を計算中...</div>
+    <div id="productList"></div>
 
-    <h2>入札フォーム</h2>
-    <input type="text" id="myItem" placeholder="商品名を入力">
-    <input type="number" id="myBid" placeholder="入札金額を入力">
-    <button onclick="submitBid()">入札する</button>
-
-    <div id="advice"></div>
-
-    <h2>入札履歴</h2>
-    <table>
-      <thead>
-        <tr><th>入札者</th><th>商品名</th><th>金額</th><th>時刻</th></tr>
-      </thead>
-      <tbody id="history"></tbody>
-    </table>
+    <div id="history">
+      <h2>入札履歴</h2>
+      <table>
+        <thead>
+          <tr><th>入札者</th><th>商品名</th><th>ブランド</th><th>金額</th><th>時刻</th></tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
   </main>
 
   <script src="script.js"></script>
