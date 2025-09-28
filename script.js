@@ -13,7 +13,12 @@ async function loadCSV() {
   list.innerHTML = "";
   items.forEach(item => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>Bidder ${item[0]}</td><td>${item[1]}</td><td>${item[2]}円</td>`;
+    tr.innerHTML = `
+      <td>Bidder ${item[0]}</td>
+      <td>${item[1]}</td>
+      <td>${item[2]}円</td>
+      <td><img src="${item[3]}" alt="${item[1]}" width="80"></td>
+    `;
     list.appendChild(tr);
   });
 
@@ -34,7 +39,7 @@ async function loadCSV() {
   window.minItem = minItem;
 }
 
-// 入札フォームからの入力を評価
+// 入札フォームからの入力を評価＋履歴に追加
 function submitBid() {
   const myBid = parseInt(document.getElementById('myBid').value);
   if (isNaN(myBid)) {
@@ -57,6 +62,12 @@ function submitBid() {
   }
 
   document.getElementById('advice').innerText = advice;
+
+  // 入札履歴に追加
+  const history = document.getElementById('history');
+  const li = document.createElement('li');
+  li.textContent = `あなたの入札: ${myBid}円`;
+  history.appendChild(li);
 }
 
 loadCSV();
