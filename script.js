@@ -42,6 +42,8 @@ async function loadCSV() {
 // 入札フォームからの入力を評価＋履歴に追加
 function submitBid() {
   const myBid = parseInt(document.getElementById('myBid').value);
+  const myItem = document.getElementById('myItem').value;
+
   if (isNaN(myBid)) {
     document.getElementById('advice').innerText = "金額を入力してください。";
     return;
@@ -50,7 +52,7 @@ function submitBid() {
   const avgPrice = window.auctionItems.reduce((sum, item) => sum + parseInt(item[2]), 0) / window.auctionItems.length;
   const minItem = window.minItem;
 
-  let advice = `あなたの入札は ${myBid}円です。`;
+  let advice = `あなたの入札は ${myItem} に ${myBid}円です。`;
   advice += ` 平均価格は約 ${Math.round(avgPrice)}円、最安値は Bidder ${minItem[0]} の「${minItem[1]}」 (${minItem[2]}円)。`;
 
   if (myBid < minItem[2]) {
@@ -63,10 +65,10 @@ function submitBid() {
 
   document.getElementById('advice').innerText = advice;
 
-  // 入札履歴に追加
+  // 入札履歴に追加（商品名＋価格）
   const history = document.getElementById('history');
   const li = document.createElement('li');
-  li.textContent = `あなたの入札: ${myBid}円`;
+  li.textContent = `あなたの入札: ${myItem} に ${myBid}円`;
   history.appendChild(li);
 }
 
