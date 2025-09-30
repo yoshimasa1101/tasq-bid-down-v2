@@ -3,27 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>商品一覧</title>
-  <style>
-    .items { display: flex; flex-wrap: wrap; gap: 16px; }
-    .card { border: 1px solid #ccc; padding: 12px; width: 200px; }
-    .card img { width: 100%; height: auto; }
-  </style>
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <h1>商品一覧</h1>
 
-  <label>カテゴリ選択:
-    <select id="categorySelect">
-      <option value="all">すべて</option>
-    </select>
-  </label>
-  <br><br>
+  <label for="category">カテゴリ選択:</label>
+  <select id="category">
+    <option value="all">すべて</option>
+  </select>
 
-  <input type="file" id="fileInput" accept=".csv">
-  <div class="items"></div>
+  <div id="product-list"></div>
 
-  <!-- PapaParse 読み込み -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
