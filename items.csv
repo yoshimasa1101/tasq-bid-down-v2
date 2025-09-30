@@ -1,6 +1,6 @@
 category,brand,name,price,image,description
-家電,SHARP,冷蔵庫,53800,https://example.com/reizouko.jpg,大容量で省エネ性能の冷蔵庫
-家電,CANON,デジタルカメラ,32800,https://example.com/camera.jpg,高画質でコンパクトなデジタルカメラ
-家電,SHARP,テレビ,53800,https://example.com/tv.jpg,高画質液晶テレビ
-家電,SONY,ビデオカメラ,32800,https://example.com/videocamera.jpg,家庭用ビデオカメラ
-家電,SHARP,空気清浄機,32800,https://example.com/aircleaner.jpg,部屋の空気をきれいにする空気清浄機
+家電,CANON,デジタルカメラ,27300,https://example.com/image.jpg,高解像度のデジタルカメラです
+家電,SONY,コンパクトカメラ,19800,https://example.com/image.jpg,持ち運びに便利なコンパクトカメラです
+家電,NIKON,一眼レフカメラ,45000,https://example.com/image.jpg,プロ仕様の一眼レフカメラです
+家電,SAMSUNG,スマートフォン,32800,https://example.com/image.jpg,高性能なスマートフォンです
+家電,SHARP,タブレット,23300,https://example.com/image.jpg,軽量で使いやすいタブレットです
