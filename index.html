@@ -2,10 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'self'">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>商品一覧</title>
-  <link rel="stylesheet" href="./styles/styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="header">
@@ -13,18 +12,18 @@
   </header>
 
   <main class="container">
-    <section class="controls" aria-label="カテゴリ選択">
-      <label for="category-select" class="label">カテゴリ選択:</label>
-      <select id="category-select" class="select">
+    <section class="controls">
+      <label for="category-select">カテゴリ選択:</label>
+      <select id="category-select">
         <option value="all">すべて</option>
       </select>
     </section>
 
-    <section class="status" aria-label="状態メッセージ">
-      <div id="status" role="status" aria-live="polite"></div>
+    <section class="status">
+      <div id="status"></div>
     </section>
 
-    <section class="list" aria-label="商品リスト">
+    <section class="list">
       <div id="product-list" class="product-list"></div>
     </section>
   </main>
@@ -33,7 +32,6 @@
     <small>&copy; TASQ JAPAN</small>
   </footer>
 
-  <script src="./scripts/script.js"></script>
-  <noscript>このページを表示するにはJavaScriptを有効にしてください。</noscript>
+  <script src="./script.js"></script>
 </body>
 </html>
