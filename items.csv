@@ -1,11 +1,8 @@
 category,brand,name,price,image,description
-腕時計,SEIKO,セイコー クロノグラフ,15000,https://example.com/seiko.jpg,高精度クロノグラフ搭載の人気モデル
-腕時計,CASIO,カシオ G-SHOCK,12000,https://example.com/gshock.jpg,耐衝撃性に優れた定番G-SHOCK
-掛け時計,CITIZEN,シチズン 壁掛け時計,8000,https://example.com/citizen.jpg,シンプルで見やすい壁掛け時計
-カメラ,CANON,キヤノン EOS R10,98000,https://example.com/eos.jpg,最新のAPS-Cミラーレスカメラ
-カメラ,Nikon,ニコン D7500,85000,https://example.com/nikon.jpg,高性能一眼レフカメラ
-バッグ,GUCCI,グッチ GGキャンバスバッグ,120000,https://example.com/gucci.jpg,高級感あふれる定番バッグ
-バッグ,PRADA,プラダ ナイロンショルダー,95000,https://example.com/prada.jpg,軽量で実用的な人気モデル
-家電,Panasonic,パナソニック 炊飯器,30000,https://example.com/ricecooker.jpg,高機能IH炊飯ジャー
-家電,SONY,ソニー ワイヤレスイヤホン,18000,https://example.com/earphones.jpg,ノイズキャンセリング対応
-家電,SHARP,シャープ 空気清浄機,25000,https://example.com/aircleaner.jpg,花粉・ウイルス対策に最適
+家電,日立,衣類乾燥機,52800,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/1_l.jpg,衣類乾燥機で洗濯物を素早く乾かす
+家電,SHARP,プラズマクラスター,32780,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/2_l.jpg,空気清浄機で部屋の空気をきれいにする
+家電,CANON,インクジェットプリンター,10780,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/3_l.jpg,写真や文書を印刷するプリンター
+家電,Panasonic,ヘアドライヤー,14850,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/4_l.jpg,髪を乾かすためのドライヤー
+家電,SONY,ワイヤレスイヤホン,27500,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/5_l.jpg,音楽を聴くためのイヤホン
+家電,RICOH,デジタルカメラ,39600,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/6_l.jpg,写真を撮るためのカメラ
+家電,SHARP,電子辞書,19800,https://www.kaden.watch.impress.co.jp/img/k
