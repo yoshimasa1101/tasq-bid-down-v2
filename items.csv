@@ -1,8 +1,6 @@
 category,brand,name,price,image,description
-家電,日立,衣類乾燥機,52800,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/1_l.jpg,衣類乾燥機で洗濯物を素早く乾かす
-家電,SHARP,プラズマクラスター,32780,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/2_l.jpg,空気清浄機で部屋の空気をきれいにする
-家電,CANON,インクジェットプリンター,10780,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/3_l.jpg,写真や文書を印刷するプリンター
-家電,Panasonic,ヘアドライヤー,14850,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/4_l.jpg,髪を乾かすためのドライヤー
-家電,SONY,ワイヤレスイヤホン,27500,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/5_l.jpg,音楽を聴くためのイヤホン
-家電,RICOH,デジタルカメラ,39600,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/6_l.jpg,写真を撮るためのカメラ
-家電,SHARP,電子辞書,19800,https://www.kaden.watch.impress.co.jp/img/kdw/docs/1225/747/7_l.jpg,言葉の意味を調べるための辞書
+家電,SHARP,冷蔵庫,53800,https://example.com/reizouko.jpg,大容量で省エネ性能の冷蔵庫
+家電,CANON,デジタルカメラ,32800,https://example.com/camera.jpg,高画質でコンパクトなデジタルカメラ
+家電,SHARP,テレビ,53800,https://example.com/tv.jpg,高画質液晶テレビ
+家電,SONY,ビデオカメラ,32800,https://example.com/videocamera.jpg,家庭用ビデオカメラ
+家電,SHARP,空気清浄機,32800,https://example.com/aircleaner.jpg,部屋の空気をきれいにする空気清浄機
