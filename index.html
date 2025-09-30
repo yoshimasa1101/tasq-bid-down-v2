@@ -2,34 +2,36 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>商品一覧</title>
+  <title>逆オークション（リクエスト型）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="header">
-    <h1 class="title">商品一覧</h1>
+    <h1 class="title">逆オークション</h1>
+    <p class="subtitle">欲しいものをリクエストし、提供者から条件を提示してもらう仕組み</p>
   </header>
 
   <main class="container">
-    <section class="controls">
-      <label for="category-select">カテゴリ選択:</label>
-      <select id="category-select">
-        <option value="all">すべて</option>
-      </select>
+    <!-- リクエスト投稿フォーム -->
+    <section class="form-section">
+      <h2>リクエストを投稿</h2>
+      <form id="request-form">
+        <input type="text" id="request-title" placeholder="欲しい商品名" required>
+        <textarea id="request-desc" placeholder="詳細条件（色・サイズ・希望価格など）" required></textarea>
+        <button type="submit">リクエスト投稿</button>
+      </form>
     </section>
 
-    <section class="status">
-      <div id="status"></div>
-    </section>
-
-    <section class="list">
-      <div id="product-list" class="product-list"></div>
+    <!-- リクエスト一覧 -->
+    <section class="list-section">
+      <h2>リクエスト一覧</h2>
+      <div id="request-list" class="request-list"></div>
     </section>
   </main>
 
   <footer class="footer">
-    <small>&copy; TASQ JAPAN</small>
+    <small>&copy; TASQ JAPAN 逆オークションデモ</small>
   </footer>
 
   <script src="./script.js"></script>
