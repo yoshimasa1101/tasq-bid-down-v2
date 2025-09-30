@@ -1,1 +1,56 @@
+[
+  {
+    "title": "冷蔵庫 400L クラス",
+    "category": "家電",
+    "desc": "白色、傷少なめ、送料込み希望。幅600mm以下だと嬉しいです。",
+    "budget": 25000,
+    "deadline": "2025-10-10",
+    "imageUrl": "https://images.unsplash.com/photo-1549399543-5f5a5cf0b3f9?w=800&q=80",
+    "createdAt": "2025-10-01T10:00:00.000Z",
+    "responses": [
+      {
+        "price": 23000,
+        "comment": "中古美品、札幌市内手渡しならこの価格。配送は別途。",
+        "eta": "3日以内",
+        "imageUrl": "",
+        "createdAt": "2025-10-01T11:00:00.000Z"
+      },
+      {
+        "price": 28000,
+        "comment": "動作良好、送料込み。色はシルバーです。",
+        "eta": "1週間",
+        "imageUrl": "",
+        "createdAt": "2025-10-01T12:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "title": "ソファー 2人掛け",
+    "category": "家具",
+    "desc": "グレー系、座り心地重視。ペットなし・禁煙環境希望。",
+    "budget": 18000,
+    "deadline": "2025-10-08",
+    "imageUrl": "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=800&q=80",
+    "createdAt": "2025-09-30T14:00:00.000Z",
+    "responses": [
+      {
+        "price": 15000,
+        "comment": "座面ヘタリ少、札幌近郊なら配送込み。",
+        "eta": "5日以内",
+        "imageUrl": "",
+        "createdAt": "2025-10-01T09:00:00.000Z"
+      }
+    ]
+  },
+  {
+    "title": "エレキギター（ストラト系）",
+    "category": "ホビー",
+    "desc": "初心者向けセット希望（アンプ・ケーブル付）。色は黒。",
+    "budget": 12000,
+    "deadline": "2025-10-12",
+    "imageUrl": "https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=800&q=80",
+    "createdAt": "2025-10-01T08:30:00.000Z",
+    "responses": []
+  }
+]
 
