@@ -1,6 +1,6 @@
 category,brand,name,price,image,description
-家電,CANON,デジタルカメラ,27300,https://example.com/image.jpg,高解像度のデジタルカメラです
-家電,SONY,コンパクトカメラ,19800,https://example.com/image.jpg,持ち運びに便利なコンパクトカメラです
-家電,NIKON,一眼レフカメラ,45000,https://example.com/image.jpg,プロ仕様の一眼レフカメラです
-家電,SAMSUNG,スマートフォン,32800,https://example.com/image.jpg,高性能なスマートフォンです
-家電,SHARP,タブレット,23300,https://example.com/image.jpg,軽量で使いやすいタブレットです
+CONVENI,サントリー,デカビタC,150,https://example.com/image.jpg,目が覚めるようなエナジードリンクです
+CONVENI,サントリー,ボス,120,https://example.com/image.jpg,朝の目覚めにぴったりなコーヒーです
+SNACK,カルビー,ポテトチップス,200,https://example.com/image.jpg,サクサク食感がたまらないスナックです
+SNACK,明治,チョコレート,250,https://example.com/image.jpg,濃厚な味わいのチョコレートです
+SANMP,ライオン,歯磨き粉,300,https://example.com/image.jpg,爽やかなミント味で口臭予防に効果的です
