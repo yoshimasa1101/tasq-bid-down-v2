@@ -1,6 +1,11 @@
 category,brand,name,price,image,description
-CONVENI,サントリー,デカビタC,150,https://example.com/image.jpg,目が覚めるようなエナジードリンクです
-CONVENI,サントリー,ボス,120,https://example.com/image.jpg,朝の目覚めにぴったりなコーヒーです
-SNACK,カルビー,ポテトチップス,200,https://example.com/image.jpg,サクサク食感がたまらないスナックです
-SNACK,明治,チョコレート,250,https://example.com/image.jpg,濃厚な味わいのチョコレートです
-SANMP,ライオン,歯磨き粉,300,https://example.com/image.jpg,爽やかなミント味で口臭予防に効果的です
+飲料,サントリー,デカビタC,138,https://example.com/image1.jpg,元気をチャージできる炭酸飲料
+飲料,サントリー,ボス,138,https://example.com/image2.jpg,朝にぴったりの缶コーヒー
+お菓子,カルビー,ポテトチップス,100,https://example.com/image3.jpg,サクサク食感の定番スナック
+お菓子,明治,チョコレート,100,https://example.com/image4.jpg,濃厚な味わいのチョコレート
+お菓子,グリコ,ポッキー,100,https://example.com/image5.jpg,みんなで楽しめるスティック菓子
+家電,日立,衣類乾燥機,52800,https://example.com/image6.jpg,衣類を素早く乾かす乾燥機
+家電,SHARP,プラズマクラスター,32780,https://example.com/image7.jpg,空気をきれいにする空気清浄機
+家電,CANON,インクジェットプリンター,10780,https://example.com/image8.jpg,写真や文書を印刷できるプリンター
+家電,Panasonic,ヘアドライヤー,14850,https://example.com/image9.jpg,髪を乾かすためのドライヤー
+家電,SONY,ワイヤレスイヤホン,27500,https://example.com/image10.jpg,音楽を楽しめるワイヤレスイヤホン
