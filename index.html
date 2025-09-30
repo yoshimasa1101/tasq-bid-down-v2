@@ -2,64 +2,28 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>TASQ JAPAN - 逆オークションMVP</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="logo.png">
+  <title>商品一覧</title>
   <style>
-    body { font-family: "Segoe UI", sans-serif; margin:0; background:#f9fafc; color:#333; }
-    header { background: linear-gradient(90deg, #005bbb, #0077ff); color:white; padding:15px 20px; display:flex; align-items:center; }
-    header img { height:50px; margin-right:15px; }
-    header h1 { margin:0; font-size:22px; }
-    main { max-width:1000px; margin:20px auto; padding:0 15px; }
-    select, input[type="number"] { padding:8px; margin:10px 0; font-size:14px; width:100%; max-width:300px; }
-    .card { background:white; border:1px solid #ddd; border-radius:8px; padding:15px; margin:15px 0; box-shadow:0 2px 6px rgba(0,0,0,0.1); display:flex; flex-wrap:wrap; align-items:center; cursor:pointer; }
-    .card img { width:100px; height:auto; margin-right:15px; }
-    .card-content { flex:1; }
-    .card-content h3 { margin:0; font-size:18px; }
-    .card-content p { margin:5px 0; font-size:14px; }
-    .card-content button { background:#0077ff; color:white; border:none; padding:8px 12px; margin-top:5px; cursor:pointer; border-radius:4px; }
-    #history { margin-top:30px; }
-    #history table { width:100%; border-collapse:collapse; }
-    #history th, #history td { border:1px solid #ccc; padding:8px; text-align:center; }
-    #csvUpload { margin-top:10px; }
-    #modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; }
-    #modalContent { background:white; padding:20px; border-radius:8px; max-width:600px; width:90%; }
-    #closeModal { float:right; cursor:pointer; font-size:20px; }
+    .items { display: flex; flex-wrap: wrap; gap: 16px; }
+    .card { border: 1px solid #ccc; padding: 12px; width: 200px; }
+    .card img { width: 100%; height: auto; }
   </style>
 </head>
 <body>
-  <header>
-    <img src="logo.png" alt="TASQ JAPAN ロゴ">
-    <h1>TASQ JAPAN - 逆オークションMVP</h1>
-  </header>
+  <h1>商品一覧</h1>
 
-  <main>
-    <!-- 広告枠 -->
-    <div id="adBanner" style="margin:20px 0; text-align:center;">
-      <iframe src="ads.html" style="width:100%; max-width:728px; height:90px; border:none;"></iframe>
-    </div>
+  <label>カテゴリ選択:
+    <select id="categorySelect">
+      <option value="all">すべて</option>
+    </select>
+  </label>
+  <br><br>
 
-    <h2>カテゴリ選択</h2>
-    <select id="categoryFilter"><option value="すべて">すべて</option></select>
-    <input type="file" id="csvUpload" accept=".csv">
-    <div id="productList"></div>
+  <input type="file" id="fileInput" accept=".csv">
+  <div class="items"></div>
 
-    <div id="history">
-      <h2>入札履歴</h2>
-      <table>
-        <thead><tr><th>入札者</th><th>商品名</th><th>ブランド</th><th>金額</th><th>時刻</th></tr></thead>
-        <tbody id="historyBody"></tbody>
-      </table>
-    </div>
-  </main>
-
-  <div id="modal">
-    <div id="modalContent">
-      <span id="closeModal">✖</span>
-      <div id="modalBody"></div>
-    </div>
-  </div>
-
+  <!-- PapaParse 読み込み -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
