@@ -1,0 +1,142 @@
+// CSV読み込みと商品カード表示
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".csv";
+  document.body.appendChild(input);
+
+  input.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const lines = e.target.result.split("\n").map(line => line.trim()).filter(line => line);
+      const headers = lines[0].split(",");
+      const items = lines.slice(1).map(line => {
+        const values = line.split(",");
+        const item = {};
+        headers.forEach((header, i) => {
+          item[header.trim()] = values[i]?.trim();
+        });
+        return item;
+      });
+
+      renderItems(items);
+      setupCategoryFilter(items);
+    };
+    reader.readAsText(file, "UTF-8");
+  });
+});
+
+// 商品カードを表示
+function renderItems(items) {
+  const container = document.createElement("div");
+  container.id = "itemsContainer";
+  document.body.appendChild(container);
+  container.innerHTML = "";
+
+  items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.setAttribute("data-category", item.category);
+    card.style.border = "1px solid #ccc";
+    card.style.padding = "10px";
+    card.style.margin = "10px";
+    card.style.display = "inline-block";
+    card.style.width = "220px";
+    card.style.verticalAlign = "top";
+
+    const img = document.createElement("img");
+    img.src = item.image;
+    img.alt = item.name;
+    img.style.width = "150px";
+    img.style.height = "150px";
+    card.appendChild(img);
+
+    const name = document.createElement("h3");
+    name.textContent = item.name;
+    card.appendChild(name);
+
+    const brand = document.createElement("p");
+    brand.textContent = `ブランド: ${item.brand}`;
+    card.appendChild(brand);
+
+    // 現在価格（開始価格で初期化）
+    let currentPrice = parseInt(item.price, 10) || 0;
+    const price = document.createElement("p");
+    price.textContent = `現在価格: ${currentPrice}円`;
+    price.style.fontWeight = "bold";
+    price.style.color = "red";
+    card.appendChild(price);
+
+    const desc = document.createElement("p");
+    desc.textContent = item.description;
+    card.appendChild(desc);
+
+    // 入札履歴表示エリア
+    const history = document.createElement("ul");
+    history.className = "bid-history";
+    history.style.textAlign = "left";
+    history.style.fontSize = "12px";
+    history.style.maxHeight = "80px";
+    history.style.overflowY = "auto";
+    history.style.borderTop = "1px solid #ddd";
+    history.style.marginTop = "5px";
+    history.style.paddingTop = "5px";
+    card.appendChild(history);
+
+    // 入札ボタン
+    const bidButton = document.createElement("button");
+    bidButton.textContent = "入札する";
+    bidButton.onclick = () => {
+      const bidAmount = prompt(`${item.name} に入札する金額を入力してください（現在価格: ${currentPrice}円以上）:`);
+      if (bidAmount && !isNaN(bidAmount)) {
+        const bidValue = parseInt(bidAmount, 10);
+        if (bidValue > currentPrice) {
+          currentPrice = bidValue;
+          price.textContent = `現在価格: ${currentPrice}円`;
+
+          const li = document.createElement("li");
+          li.textContent = `入札: ${bidValue}円 （${new Date().toLocaleTimeString()}）`;
+          history.appendChild(li);
+        } else {
+          alert("現在価格より高い金額を入力してください！");
+        }
+      }
+    };
+    card.appendChild(bidButton);
+
+    container.appendChild(card);
+  });
+}
+
+// カテゴリフィルターを作成
+function setupCategoryFilter(items) {
+  const categories = Array.from(new Set(items.map(item => item.category)));
+  const select = document.createElement("select");
+  select.id = "categoryFilter";
+  select.style.margin = "20px";
+
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = "すべて";
+  select.appendChild(allOption);
+
+  categories.forEach(cat => {
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    select.appendChild(option);
+  });
+
+  document.body.insertBefore(select, document.getElementById("itemsContainer"));
+
+  select.addEventListener("change", function () {
+    const selected = this.value;
+    document.querySelectorAll(".item-card").forEach(card => {
+      const category = card.getAttribute("data-category");
+      card.style.display = (selected === "all" || selected === category) ? "inline-block" : "none";
+    });
+  });
+}
