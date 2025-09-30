@@ -1,57 +1,53 @@
-let allItems = [];
+// CSVを読み込んで商品一覧を表示する
+fetch('./auction_data.csv')
+  .then(response => response.text())
+  .then(text => {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',');
 
-// CSVファイル選択イベント
-document.getElementById("fileInput").addEventListener("change", function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+    // CSVをオブジェクト配列に変換
+    const products = lines.slice(1).map(line => {
+      const cols = line.split(',');
+      return {
+        category: cols[0],
+        name: cols[1],
+        price: cols[2]
+      };
+    });
 
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: function(results) {
-      allItems = results.data;
-      populateCategories(allItems);
-      renderItems("all");
+    // カテゴリ一覧を生成
+    const categorySelect = document.getElementById('category');
+    const categories = [...new Set(products.map(p => p.category))];
+    categories.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat;
+      option.textContent = cat;
+      categorySelect.appendChild(option);
+    });
+
+    // 商品一覧を表示する関数
+    function renderList(filter) {
+      const list = document.getElementById('product-list');
+      list.innerHTML = '';
+      products
+        .filter(p => filter === 'all' || p.category === filter)
+        .forEach(p => {
+          const div = document.createElement('div');
+          div.className = 'product';
+          div.textContent = `${p.name} - ¥${p.price}`;
+          list.appendChild(div);
+        });
     }
+
+    // 初期表示
+    renderList('all');
+
+    // カテゴリ変更時
+    categorySelect.addEventListener('change', e => {
+      renderList(e.target.value);
+    });
+  })
+  .catch(err => {
+    document.getElementById('product-list').textContent = 'データの読み込みに失敗しました。';
+    console.error(err);
   });
-});
-
-// カテゴリ選択イベント
-document.getElementById("categorySelect").addEventListener("change", function(e) {
-  renderItems(e.target.value);
-});
-
-// カテゴリ一覧をプルダウンに反映
-function populateCategories(data) {
-  const select = document.getElementById("categorySelect");
-  const categories = [...new Set(data.map(item => item.category))];
-  select.innerHTML = `<option value="all">すべて</option>`;
-  categories.forEach(cat => {
-    const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
-    select.appendChild(opt);
-  });
-}
-
-// 商品カードを描画
-function renderItems(category) {
-  const container = document.querySelector(".items");
-  container.innerHTML = "";
-
-  const filtered = category === "all"
-    ? allItems
-    : allItems.filter(item => item.category === category);
-
-  filtered.forEach(item => {
-    const card = document.createElement("div");
-    card.classList.add("card");
-    card.innerHTML = `
-      <h3>${item.name}</h3>
-      <p>${item.brand} - ¥${item.price}</p>
-      <img src="${item.image}" alt="${item.name}">
-      <p>${item.description}</p>
-    `;
-    container.appendChild(card);
-  });
-}
