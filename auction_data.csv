@@ -1,6 +1,7 @@
-name,price,image
-アナログカメラ,10000,https://example.com/item01.jpg
-アナログカメラ,20000,https://example.com/item02.jpg
-アナログカメラ,30000,https://example.com/item03.jpg
-アナログカメラ,50000,https://example.com/item04.jpg
-腕時計,80000,https://example.com/item05.jpg
+category,name,price
+家電,冷蔵庫,30000
+家電,電子レンジ,12000
+家具,椅子,5000
+家具,テーブル,15000
+本,JavaScript入門,2000
+本,HTML&CSS,1800
