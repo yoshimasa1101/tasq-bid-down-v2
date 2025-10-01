@@ -83,7 +83,7 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
 .footer{ text-align:center; color:var(--muted); font-size:12px; margin:24px 0; }
 
 /* ボタン */
-.btn{ padding:8px 12px; border:1px solid var(--border); border-radius:6px; background:#fff; color:var(--text); cursor:pointer }
+.btn{ padding:8px 12px; border:1px solid var(--border); border-radius:6px; background:#fff; color:#000; cursor:pointer }
 .btn:hover{ background:#f3f4f6 }
 .btn-primary{ background:var(--primary); color:#fff; border-color:var(--primary) }
 .btn-primary:hover{ opacity:.9 }
