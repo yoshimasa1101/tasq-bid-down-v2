@@ -11,7 +11,7 @@
   <header class="header">
     <div class="header-left">
       <h1 class="title">逆オークション</h1>
-      <div class="subtitle">欲しいものを提示し、提供者が条件を提案（Yahoo!オークション／メルカリ体験を意識）</div>
+      <div class="subtitle">欲しいものをリクエストして、業者からの提案を待ちましょう。</div>
     </div>
     <div class="header-right">
       <button id="export-json" class="btn" aria-label="JSON書き出し">JSON書き出し</button>
@@ -24,11 +24,20 @@
     <section class="controls" aria-label="検索と絞り込み">
       <div class="control-group">
         <label class="label" for="search-input">キーワード検索</label>
-        <input type="search" id="search-input" placeholder="商品名・説明で検索">
+        <input type="search" id="search-input" placeholder="商品名・説明・場所で検索">
       </div>
       <div class="control-group">
         <label class="label" for="category-filter">カテゴリ</label>
         <select id="category-filter"><option value="all">すべて</option></select>
+      </div>
+      <div class="control-group">
+        <label class="label" for="service-filter">サービスの種類</label>
+        <select id="service-filter">
+          <option value="all">すべて</option>
+          <option value="提案募集">提案募集</option>
+          <option value="見積依頼">見積依頼</option>
+          <option value="入手代行">入手代行</option>
+        </select>
       </div>
       <div class="control-group">
         <label class="label" for="sort-select">並び替え</label>
@@ -51,12 +60,12 @@
 
     <!-- リクエスト投稿 -->
     <section class="form-section" aria-label="リクエスト投稿">
-      <h2>欲しいものをリクエスト</h2>
+      <h2>欲しいもののリクエスト</h2>
       <form id="request-form" novalidate>
         <div class="grid-2">
           <div class="form-field">
             <label for="req-title">商品名</label>
-            <input type="text" id="req-title" placeholder="例: 冷蔵庫 400L" required>
+            <input type="text" id="req-title" placeholder="例: 美容液 400mL / 電動自転車 26インチ" required>
           </div>
           <div class="form-field">
             <label for="req-category">カテゴリ</label>
@@ -66,29 +75,53 @@
               <option value="家具">家具</option>
               <option value="ホビー">ホビー</option>
               <option value="ファッション">ファッション</option>
+              <option value="コスメ">コスメ</option>
               <option value="PC・ガジェット">PC・ガジェット</option>
               <option value="その他">その他</option>
             </select>
           </div>
         </div>
-        <div class="form-field">
-          <label for="req-desc">詳細条件</label>
-          <textarea id="req-desc" placeholder="色・サイズ・状態・付属品などの希望条件" required></textarea>
-        </div>
+
         <div class="grid-3">
           <div class="form-field">
-            <label for="req-budget">希望価格（円）</label>
-            <input type="number" id="req-budget" min="0" placeholder="例: 25000" required inputmode="numeric">
+            <label for="req-service">サービスの種類</label>
+            <select id="req-service" required>
+              <option value="">選択してください</option>
+              <option value="提案募集">提案募集</option>
+              <option value="見積依頼">見積依頼</option>
+              <option value="入手代行">入手代行</option>
+            </select>
           </div>
           <div class="form-field">
-            <label for="req-deadline">期限</label>
-            <input type="date" id="req-deadline" required>
+            <label for="req-location">希望の取引場所</label>
+            <input type="text" id="req-location" placeholder="例: 東京 / 北海道 恵庭市 / オンライン" required>
+          </div>
+          <div class="form-field">
+            <label for="req-budget">希望金額（円）</label>
+            <input type="number" id="req-budget" min="0" placeholder="例: 20000" required inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="req-desc">詳細条件</label>
+          <textarea id="req-desc" placeholder="できるだけ安く、サイズ・材質・状態・付属品などの希望条件を記載" required></textarea>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-field">
+            <label for="req-deadline">希望納期（期限）</label>
+            <input type="text" id="req-deadline" placeholder="YYYY-MM-DD または YYYY/MM/DD" required>
           </div>
           <div class="form-field">
             <label for="req-image">参考画像URL（任意）</label>
             <input type="url" id="req-image" placeholder="https://...">
           </div>
+          <div class="form-field">
+            <label for="req-notes">備考（任意）</label>
+            <input type="text" id="req-notes" placeholder="配送希望、手渡し可など">
+          </div>
         </div>
+
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">リクエストを投稿</button>
         </div>
