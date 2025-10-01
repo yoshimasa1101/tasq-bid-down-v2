@@ -4,54 +4,53 @@
   <meta charset="UTF-8">
   <title>逆オークション（欲しいものリクエスト）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
   <header class="header">
     <div class="header-left">
       <h1 class="title">逆オークション</h1>
-      <div class="subtitle">Yahoo!オークション／メルカリを見本にした「欲しいもの提示→条件提案」システム</div>
+      <div class="subtitle">欲しいものを提示し、提供者が条件（価格・納期・コメント）を提案</div>
     </div>
     <div class="header-right">
-      <button id="export-json" class="btn">JSON書き出し</button>
-      <button id="import-json" class="btn btn-secondary">JSON読み込み</button>
+      <button id="export-json" class="btn" aria-label="JSON書き出し">JSON書き出し</button>
+      <button id="import-json" class="btn btn-secondary" aria-label="JSON読み込み">JSON読み込み</button>
     </div>
   </header>
 
-  <main class="container">
-    <!-- フィルタ＆並び替え -->
-    <section class="controls">
+  <main class="container" role="main">
+    <section class="controls" aria-label="検索と絞り込み">
       <div class="control-group">
-        <label class="label">キーワード検索</label>
+        <label class="label" for="search-input">キーワード検索</label>
         <input type="search" id="search-input" placeholder="商品名・説明で検索">
       </div>
       <div class="control-group">
-        <label class="label">カテゴリ</label>
+        <label class="label" for="category-filter">カテゴリ</label>
         <select id="category-filter">
           <option value="all">すべて</option>
         </select>
       </div>
       <div class="control-group">
-        <label class="label">並び替え</label>
+        <label class="label" for="sort-select">並び替え</label>
         <select id="sort-select">
           <option value="newest">新着順</option>
-          <option value="lowest">最安値（希望価格）</option>
+          <option value="lowest">希望価格（最安）</option>
           <option value="deadline">期限が近い順</option>
         </select>
       </div>
     </section>
 
-    <!-- リクエスト投稿フォーム -->
-    <section class="form-section">
+    <section class="form-section" aria-label="リクエスト投稿">
       <h2>欲しいものをリクエスト</h2>
-      <form id="request-form">
+      <form id="request-form" novalidate>
         <div class="grid-2">
           <div class="form-field">
-            <label>商品名</label>
+            <label for="req-title">商品名</label>
             <input type="text" id="req-title" placeholder="例: 冷蔵庫 400L" required>
           </div>
           <div class="form-field">
-            <label>カテゴリ</label>
+            <label for="req-category">カテゴリ</label>
             <select id="req-category" required>
               <option value="">選択してください</option>
               <option value="家電">家電</option>
@@ -64,50 +63,49 @@
           </div>
         </div>
         <div class="form-field">
-          <label>詳細条件</label>
+          <label for="req-desc">詳細条件</label>
           <textarea id="req-desc" placeholder="色・サイズ・状態・付属品などの希望条件" required></textarea>
         </div>
         <div class="grid-3">
           <div class="form-field">
-            <label>希望価格（円）</label>
-            <input type="number" id="req-budget" min="0" placeholder="例: 25000" required>
+            <label for="req-budget">希望価格（円）</label>
+            <input type="number" id="req-budget" min="0" placeholder="例: 25000" required inputmode="numeric">
           </div>
           <div class="form-field">
-            <label>期限</label>
+            <label for="req-deadline">期限</label>
             <input type="date" id="req-deadline" required>
           </div>
           <div class="form-field">
-            <label>参考画像URL（任意）</label>
+            <label for="req-image">参考画像URL（任意）</label>
             <input type="url" id="req-image" placeholder="https://...">
           </div>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">リクエストを投稿</button>
         </div>
+        <p id="form-error" class="error-text" role="alert" aria-live="polite"></p>
       </form>
     </section>
 
-    <!-- 絞り込み結果ステータス -->
     <section class="status">
       <div id="status-text" class="muted"></div>
     </section>
 
-    <!-- リクエスト一覧 -->
-    <section class="list-section">
+    <section class="list-section" aria-label="リクエスト一覧">
       <div id="request-list" class="card-list"></div>
     </section>
   </main>
 
-  <!-- JSONインポートモーダル -->
-  <div id="modal" class="modal hidden">
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-content">
-      <h3>JSON読み込み</h3>
-      <p class="muted">data.sample.jsonの内容などを貼り付けて「読み込む」を押してください。</p>
-      <textarea id="import-text" placeholder='[ { "title": "...", "category": "...", ... } ]'></textarea>
+      <h3 id="modal-title">JSON読み込み</h3>
+      <p class="muted">data.sample.json の内容などを貼り付けて「読み込む」を押してください。</p>
+      <textarea id="import-text" placeholder='[ { "title": "...", "category": "...", ... } ]' aria-label="JSON入力欄"></textarea>
       <div class="modal-actions">
         <button id="modal-import" class="btn btn-primary">読み込む</button>
         <button id="modal-close" class="btn btn-secondary">閉じる</button>
       </div>
+      <p id="import-error" class="error-text" role="alert" aria-live="polite"></p>
     </div>
   </div>
 
