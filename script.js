@@ -3,13 +3,20 @@ const SUPABASE_URL = "";           // 例: https://xxxx.supabase.co
 const SUPABASE_ANON_KEY = "";      // 例: 「Project Settings > API > anon public」
 const USE_DB = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-const STORAGE_KEY = "tasq_reverse_auction_requests_v4";
-const WATCH_KEY = "tasq_reverse_auction_watch_v2";
+const STORAGE_KEY = "tasq_reverse_auction_requests_v5";
+const WATCH_KEY = "tasq_reverse_auction_watch_v3";
+const CLIENT_ID_KEY = "tasq_reverse_auction_client_id_v1";
+const UPLOAD_BUCKET = "uploads";
 
 // ===== Supabase クライアント =====
 let supabase = null;
-if (USE_DB) {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (USE_DB) supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ===== クライアントID（ウォッチ集計用・匿名識別子） =====
+let CLIENT_ID = localStorage.getItem(CLIENT_ID_KEY);
+if (!CLIENT_ID){
+  CLIENT_ID = crypto.randomUUID?.() || (Date.now()+"-"+Math.random());
+  localStorage.setItem(CLIENT_ID_KEY, CLIENT_ID);
 }
 
 // ===== DOM =====
@@ -39,9 +46,10 @@ const importError = document.getElementById("import-error");
 
 // ===== 状態 =====
 let requests = [];
-let watchSet = loadWatchSafely();
+let watchSet = loadWatchSafely(); // Local自己ウォッチ表示用
 let page = 1;
 let tickTimer = null;
+let watchCounts = new Map(); // request_id -> count（DB集計）
 
 // ===== 初期化 =====
 init();
@@ -49,6 +57,7 @@ init();
 async function init(){
   requests = await loadAll();
   refreshCategoryOptions(requests);
+  await refreshWatchCounts();
   render();
   startTick();
 }
@@ -74,7 +83,8 @@ requestForm.addEventListener("submit", async e => {
   const desc = val("#req-desc");
   const budget = Number(val("#req-budget"));
   const deadlineRaw = val("#req-deadline"); // YYYY-MM-DD or YYYY/MM/DD
-  const imageUrl = val("#req-image");
+  const imageUrlText = val("#req-image");
+  const imageFile = document.getElementById("req-file").files[0] || null;
   const notes = val("#req-notes");
 
   const errors = [];
@@ -93,10 +103,16 @@ requestForm.addEventListener("submit", async e => {
     return;
   }
 
+  let imageUrl = imageUrlText || "";
+  if (USE_DB && imageFile){
+    const up = await uploadImage(imageFile);
+    if (up.ok) imageUrl = up.url; else alert("画像アップロードに失敗: " + up.error);
+  }
+
   const req = {
     id: Date.now(),
     title, category, service, location, desc,
-    budget, deadline, imageUrl: imageUrl || "", notes: notes || "",
+    budget, deadline, imageUrl, notes: notes || "",
     status: computeStatus(deadline),
     createdAt: new Date().toISOString(),
     responses: []
@@ -105,6 +121,7 @@ requestForm.addEventListener("submit", async e => {
   await saveOne(req);
   requests = await loadAll();
   refreshCategoryOptions(requests);
+  await refreshWatchCounts();
   requestForm.reset();
   page = 1;
   render();
@@ -137,6 +154,7 @@ modalImport.addEventListener("click", async () => {
     await replaceAll(normalized);
     requests = await loadAll();
     refreshCategoryOptions(requests);
+    await refreshWatchCounts();
     page = 1;
     render();
     modal.classList.add("hidden");
@@ -202,7 +220,7 @@ function render(){
 
     const img = r.imageUrl ? `<img class="m-thumb" src="${escapeHtml(r.imageUrl)}" alt="">` : `<div class="m-thumb" aria-hidden="true"></div>`;
     const best = lowestPrice(r.responses);
-    const likeCount = countWatch(r.id);
+    const likeCount = getWatchCount(r.id);
     const badgeLike = `<span class="badge like">♡ ${likeCount}</span>`;
     const badgeBest = (best !== null) ? `<span class="badge best">最良 ¥${best.toLocaleString()}</span>` : `<span class="badge">最良オファー: 未提示</span>`;
     const countdown = `<div class="m-countdown" data-deadline="${escapeHtml(r.deadline)}"></div>`;
@@ -230,14 +248,16 @@ function render(){
 
     requestList.appendChild(card);
 
-    // ウォッチイベント
+    // ウォッチイベント（DB集計＋Local表示更新）
     const watchBtn = card.querySelector(".watch-btn");
-    watchBtn.addEventListener("click", () => {
-      toggleWatch(r.id);
+    watchBtn.addEventListener("click", async () => {
+      await toggleWatchDB(r.id);
+      toggleWatchLocal(r.id);
+      await refreshWatchCounts();
       render();
     });
 
-    // 応答フォームイベント
+    // 応答フォームイベント（画像URLのみ。アップロードはリクエスト側で対応）
     const form = card.querySelector(`form[data-id="${r.id}"]`);
     if (form){
       form.addEventListener("submit", async e => {
@@ -317,14 +337,48 @@ function renderResponseForm(id, status){
 }
 
 // ===== ウォッチ（♡） =====
+// Local（自己表示用）
 function isWatched(id){ return watchSet.has(id); }
-function toggleWatch(id){
+function toggleWatchLocal(id){
   if (watchSet.has(id)) watchSet.delete(id); else watchSet.add(id);
   saveWatchSafely(watchSet);
 }
-function countWatch(id){
-  // 単純に「ウォッチ中なら1、そうでなければ0」で視覚化（単独端末用）。将来DBで合計数に拡張可。
-  return watchSet.has(id) ? 1 : 0;
+// DB（全体集計用）
+async function toggleWatchDB(requestId){
+  if (!USE_DB) return;
+  // 既存チェック
+  const { data, error } = await supabase
+    .from("watchers").select("id").eq("request_id", requestId).eq("client_id", CLIENT_ID).limit(1);
+  if (error){ console.warn("ウォッチ取得失敗:", error.message); return; }
+  if (data && data.length){
+    // 解除
+    const { error: delErr } = await supabase.from("watchers").delete().eq("id", data[0].id);
+    if (delErr) console.warn("ウォッチ解除失敗:", delErr.message);
+  }else{
+    // 追加
+    const { error: insErr } = await supabase.from("watchers").insert({ request_id: requestId, client_id: CLIENT_ID, createdAt: new Date().toISOString() });
+    if (insErr) console.warn("ウォッチ追加失敗:", insErr.message);
+  }
+}
+async function refreshWatchCounts(){
+  watchCounts.clear();
+  if (!USE_DB){
+    // Local端末のみの簡易表示（ウォッチ中は1、他は0）
+    requests.forEach(r => watchCounts.set(r.id, isWatched(r.id) ? 1 : 0));
+    return;
+  }
+  const { data, error } = await supabase.from("watchers").select("request_id, count:request_id(count)").group("request_id");
+  if (error){
+    console.warn("ウォッチ集計失敗:", error.message);
+    // フォールバック
+    requests.forEach(r => watchCounts.set(r.id, isWatched(r.id) ? 1 : 0));
+    return;
+  }
+  // data: [{ request_id, count }]
+  data.forEach(row => watchCounts.set(row.request_id, Number(row.count)||0));
+}
+function getWatchCount(id){
+  return watchCounts.get(id) ?? 0;
 }
 
 // ===== ヘルパー =====
@@ -351,9 +405,22 @@ function lowestPrice(responses){
   return vals.length ? Math.min(...vals) : null;
 }
 
+// ===== 画像アップロード（Supabase Storage） =====
+async function uploadImage(file){
+  if (!USE_DB) return { ok:false, error:"Supabase未設定のためアップロード不可" };
+  const ext = file.name.split(".").pop();
+  const path = `${CLIENT_ID}/${Date.now()}.${ext||"jpg"}`;
+  const { data, error } = await supabase.storage.from(UPLOAD_BUCKET).upload(path, file, { upsert:false });
+  if (error) return { ok:false, error:error.message };
+  const { data: pub } = supabase.storage.from(UPLOAD_BUCKET).getPublicUrl(path);
+  const url = pub?.publicUrl || "";
+  return url ? { ok:true, url } : { ok:false, error:"公開URL取得に失敗" };
+}
+
 // ===== データ層（DB or LocalStorage） =====
 async function loadAll(){
   if (!USE_DB) return loadLocal();
+  // requests + responses
   const { data, error } = await supabase.from("requests").select("*, responses(*)").order("createdAt", { ascending:false });
   if (error){ console.warn("DB読み込み失敗。Localへフォールバック:", error.message); return loadLocal(); }
   return data.map(normalizeRequestFromJson).filter(Boolean);
@@ -375,8 +442,8 @@ async function addResponse(requestId, res){
   }
   const payload = { request_id: requestId, ...res };
   const { error } = await supabase.from("responses").insert(payload);
-  if (error){ alert("DBレスポンス保存に失敗しました: " + error.message); 
-    // Local fallback
+  if (error){
+    alert("DBレスポンス保存に失敗しました: " + error.message);
     const arr = loadLocal();
     const target = arr.find(x => x.id === requestId);
     if (target){ target.responses.unshift(res); saveLocalReplace(arr); }
@@ -384,23 +451,22 @@ async function addResponse(requestId, res){
 }
 async function replaceAll(arr){
   if (!USE_DB){ saveLocalReplace(arr); return; }
-  // DB上の既存削除→一括投入（簡易）
-  const { error: delErr } = await supabase.from("responses").delete().neq("id", 0);
-  if (delErr){ alert("DB初期化（responses）失敗: " + delErr.message); }
-  const { error: delErr2 } = await supabase.from("requests").delete().neq("id", 0);
-  if (delErr2){ alert("DB初期化（requests）失敗: " + delErr2.message); }
+  // 初期化
+  await supabase.from("responses").delete().neq("id", 0);
+  await supabase.from("watchers").delete().neq("id", 0);
+  await supabase.from("requests").delete().neq("id", 0);
   // requests投入
   const reqs = arr.map(r => { const { responses, ...base } = r; return base; });
   if (reqs.length){
     const { error: insErr } = await supabase.from("requests").insert(reqs);
-    if (insErr){ alert("DB投入失敗: " + insErr.message); }
+    if (insErr) alert("DB投入失敗: " + insErr.message);
   }
   // responses投入
   const flatRes = [];
   arr.forEach(r => (r.responses||[]).forEach(x => flatRes.push({ request_id: r.id, ...x })));
   if (flatRes.length){
     const { error: insRErr } = await supabase.from("responses").insert(flatRes);
-    if (insRErr){ alert("DBレスポンス投入失敗: " + insRErr.message); }
+    if (insRErr) alert("DBレスポンス投入失敗: " + insRErr.message);
   }
 }
 
@@ -462,7 +528,7 @@ function normalizeResponseFromJson(x){
   }catch{ return null; }
 }
 
-// ===== ウォッチ保存 =====
+// ===== ウォッチ保存（Local自己表示用） =====
 function loadWatchSafely(){
   try{
     const raw = localStorage.getItem(WATCH_KEY);
