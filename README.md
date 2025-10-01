@@ -1,27 +1,53 @@
-# 逆オークション（完成版）
+# 逆オークション（メルカリ風UI + Supabase連携 + フォールバック）
 
-Yahoo!オークション／メルカリ体験を意識した「欲しいもの提示→条件提案」システムの完成版です。  
-GitHub Pagesで動作し、データはlocalStorageに保存されます。
+## 概要
+- メルカリ風のカードUI（大画像・赤字価格・♡ウォッチ）
+- Supabase（クラウドDB）に自動接続。未設定なら localStorage にフォールバック
+- 検索／カテゴリ・サービス絞り込み／並び替え／ページネーション／カウントダウン／最良オファー強調／JSON入出力
 
-## 機能一覧
-- リクエスト投稿（商品名／カテゴリ／サービス種類／場所／詳細条件／希望金額／期限／画像URL／備考）
-- 検索（商品名・説明・場所）、カテゴリ絞り込み、サービス種類フィルタ
-- 並び替え（新着／希望金額最安／期限が近い順／最良オファー）
-- ページネーション（1ページ件数の変更）
-- 期限カウントダウン（残り日・時・分・秒、期限切れで赤表示）
-- 最良オファー強調（提示価格の最安カードをハイライト）
-- ウォッチ（お気に入り）機能（localStorageに保存）
-- JSONエクスポート／インポート（右上ボタン）
+## 使い方（最短）
+1. リポジトリ直下に一式を上書き
+2. GitHub Pages の公開URLを開く
+3. 「JSON読み込み」で `data.sample.json` を貼り付け → インポート
 
-## ファイル
-- index.html / styles.css / script.js / data.sample.json / .gitignore / README.md
-
-## 使い方
-1. GitHub Pagesを有効化（Branch: main, Folder: root）
-2. 公開URLへアクセス
-3. 右上「JSON読み込み」から `data.sample.json` を貼り付けてインポート、または直接リクエスト投稿
+## Supabase を使う（任意）
+- Project を作成 → Project Settings > API から
+  - `SUPABASE_URL`（https://xxxx.supabase.co）
+  - `SUPABASE_ANON_KEY`（anon public key）
+- `script.js` の先頭に値をコピペ
+- テーブルを作成（SQL）
+  - requests
+    ```sql
+    create table if not exists public.requests (
+      id bigint primary key,
+      title text not null,
+      category text not null,
+      service text not null,
+      location text,
+      desc text not null,
+      budget numeric not null,
+      deadline date not null,
+      imageUrl text,
+      notes text,
+      status text,
+      createdAt timestamptz not null
+    );
+    ```
+  - responses
+    ```sql
+    create table if not exists public.responses (
+      id bigint generated always as identity primary key,
+      request_id bigint not null references public.requests(id) on delete cascade,
+      price numeric not null,
+      comment text not null,
+      eta text,
+      imageUrl text,
+      createdAt timestamptz not null
+    );
+    ```
+- 以上で自動的にDBを優先使用（設定が空なら自動でLocalStorageに切替）
 
 ## 注意
-- データはlocalStorageに保存されます。ブラウザや端末が変わると共有されません。
-- 期限は `YYYY-MM-DD` または `YYYY/MM/DD` 形式で入力できます。
-- 画像URLは任意です。未入力時はプレースホルダ枠が表示されます。
+- 画像URLは任意。未入力時はプレースホルダ枠表示
+- 期限は `YYYY-MM-DD` または `YYYY/MM/DD` が入力可（内部でハイフンに正規化）
+- DB障害時はエラーを通知しつつ LocalStorage に自動フォールバック
