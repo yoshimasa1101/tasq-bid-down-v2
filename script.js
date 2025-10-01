@@ -1,8 +1,18 @@
-// LocalStorage キー
-const STORAGE_KEY = "tasq_reverse_auction_requests_v3";
-const WATCH_KEY = "tasq_reverse_auction_watch_v1";
+// ===== 設定（Supabase未設定なら自動でLocalStorageにフォールバック） =====
+const SUPABASE_URL = "";           // 例: https://xxxx.supabase.co
+const SUPABASE_ANON_KEY = "";      // 例: 「Project Settings > API > anon public」
+const USE_DB = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-// DOM
+const STORAGE_KEY = "tasq_reverse_auction_requests_v4";
+const WATCH_KEY = "tasq_reverse_auction_watch_v2";
+
+// ===== Supabase クライアント =====
+let supabase = null;
+if (USE_DB) {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+// ===== DOM =====
 const searchInput = document.getElementById("search-input");
 const categoryFilter = document.getElementById("category-filter");
 const serviceFilter = document.getElementById("service-filter");
@@ -27,18 +37,23 @@ const modalImport = document.getElementById("modal-import");
 const importText = document.getElementById("import-text");
 const importError = document.getElementById("import-error");
 
-// 状態
-let requests = loadRequestsSafely();
+// ===== 状態 =====
+let requests = [];
 let watchSet = loadWatchSafely();
 let page = 1;
 let tickTimer = null;
 
-// 初期設定
-refreshCategoryOptions(requests);
-render();
-startTick();
+// ===== 初期化 =====
+init();
 
-// イベント
+async function init(){
+  requests = await loadAll();
+  refreshCategoryOptions(requests);
+  render();
+  startTick();
+}
+
+// ===== イベント =====
 searchInput.addEventListener("input", () => { page = 1; render(); });
 categoryFilter.addEventListener("change", () => { page = 1; render(); });
 serviceFilter.addEventListener("change", () => { page = 1; render(); });
@@ -48,7 +63,7 @@ pageSizeSel.addEventListener("change", () => { page = 1; render(); });
 prevPageBtn.addEventListener("click", () => { if (page > 1) { page--; render(); }});
 nextPageBtn.addEventListener("click", () => { page++; render(); });
 
-requestForm.addEventListener("submit", e => {
+requestForm.addEventListener("submit", async e => {
   e.preventDefault();
   formError.textContent = "";
 
@@ -58,7 +73,7 @@ requestForm.addEventListener("submit", e => {
   const location = val("#req-location");
   const desc = val("#req-desc");
   const budget = Number(val("#req-budget"));
-  const deadlineRaw = val("#req-deadline"); // YYYY-MM-DD または YYYY/MM/DD
+  const deadlineRaw = val("#req-deadline"); // YYYY-MM-DD or YYYY/MM/DD
   const imageUrl = val("#req-image");
   const notes = val("#req-notes");
 
@@ -70,7 +85,7 @@ requestForm.addEventListener("submit", e => {
   if (!desc) errors.push("詳細条件は必須です");
   if (Number.isNaN(budget) || budget < 0) errors.push("希望金額は0以上の数値を入力してください");
 
-  const deadline = normalizeDate(deadlineRaw); // YYYY-MM-DD に正規化
+  const deadline = normalizeDate(deadlineRaw);
   if (!deadline) errors.push("期限は YYYY-MM-DD または YYYY/MM/DD 形式で入力してください");
 
   if (errors.length){
@@ -81,60 +96,46 @@ requestForm.addEventListener("submit", e => {
   const req = {
     id: Date.now(),
     title, category, service, location, desc,
-    budget,
-    deadline,
-    imageUrl: imageUrl || "",
-    notes: notes || "",
+    budget, deadline, imageUrl: imageUrl || "", notes: notes || "",
     status: computeStatus(deadline),
     createdAt: new Date().toISOString(),
     responses: []
   };
 
-  requests.unshift(req);
-  saveSafely(requests);
+  await saveOne(req);
+  requests = await loadAll();
   refreshCategoryOptions(requests);
   requestForm.reset();
   page = 1;
   render();
 });
 
-// JSON書き出し
-exportBtn.addEventListener("click", () => {
+exportBtn.addEventListener("click", async () => {
   try{
-    const blob = new Blob([JSON.stringify(requests, null, 2)], { type: "application/json" });
+    const data = await loadAll();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "reverse-auction-data.json";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    a.href = url; a.download = "reverse-auction-data.json";
+    document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
   }catch(e){
     alert("JSON書き出しに失敗しました: " + e.message);
   }
 });
 
-// JSON読み込み（モーダル）
-importBtn.addEventListener("click", () => {
-  importError.textContent = "";
-  importText.value = "";
-  modal.classList.remove("hidden");
-});
-modalClose.addEventListener("click", () => {
-  modal.classList.add("hidden");
-  importText.value = "";
-  importError.textContent = "";
-});
-modalImport.addEventListener("click", () => {
+importBtn.addEventListener("click", () => { importError.textContent = ""; importText.value = ""; modal.classList.remove("hidden"); });
+modalClose.addEventListener("click", () => { modal.classList.add("hidden"); importText.value = ""; importError.textContent = ""; });
+modalImport.addEventListener("click", async () => {
   try {
     importError.textContent = "";
     const text = importText.value.trim();
     if (!text) throw new Error("JSONテキストを入力してください");
     const data = JSON.parse(text);
     if (!Array.isArray(data)) throw new Error("配列形式のJSONが必要です");
-    requests = data.map(normalizeRequestFromJson).filter(Boolean);
-    saveSafely(requests);
+    const normalized = data.map(normalizeRequestFromJson).filter(Boolean);
+    await replaceAll(normalized);
+    requests = await loadAll();
     refreshCategoryOptions(requests);
     page = 1;
     render();
@@ -145,7 +146,7 @@ modalImport.addEventListener("click", () => {
   }
 });
 
-// レンダリング
+// ===== レンダリング =====
 function render(){
   const q = searchInput.value.trim().toLowerCase();
   const cat = categoryFilter.value;
@@ -155,7 +156,6 @@ function render(){
 
   let arr = [...requests];
 
-  // フィルタ
   if (cat !== "all") arr = arr.filter(r => r.category === cat);
   if (service !== "all") arr = arr.filter(r => r.service === service);
   if (q){
@@ -167,7 +167,6 @@ function render(){
     );
   }
 
-  // 並び替え
   if (sort === "newest"){
     arr.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
   }else if (sort === "lowest"){
@@ -178,10 +177,8 @@ function render(){
     arr.sort((a,b) => (lowestPrice(a.responses) ?? Infinity) - (lowestPrice(b.responses) ?? Infinity));
   }
 
-  // ステータス表示
-  statusText.textContent = `表示件数：${arr.length}件（検索: "${q||"-"}", カテゴリ: ${cat}, 種類: ${service}, 並び替え: ${sort}）`;
+  statusText.textContent = `表示件数：${arr.length}件（検索: "${q||"-"}", カテゴリ: ${cat}, 種類: ${service}, 並び替え: ${sort}${USE_DB ? ", DB: Supabase" : ", 保存: LocalStorage"}）`;
 
-  // ページング
   const total = arr.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   if (page > totalPages) page = totalPages;
@@ -193,53 +190,42 @@ function render(){
   prevPageBtn.disabled = page <= 1;
   nextPageBtn.disabled = page >= totalPages;
 
-  // リスト描画
   requestList.innerHTML = "";
   if (!pageItems.length){
-    requestList.innerHTML = `<div class="card"><div class="card-content">該当するリクエストがありません。</div></div>`;
+    requestList.innerHTML = `<div class="m-card"><div class="m-body">該当するリクエストがありません。</div></div>`;
     return;
   }
 
   pageItems.forEach(r => {
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = "m-card";
 
-    const thumb = r.imageUrl ? `<img class="card-thumb" src="${escapeHtml(r.imageUrl)}" alt="">` : `<div class="card-thumb" aria-hidden="true"></div>`;
-    const badgeStatus = `<span class="badge">${escapeHtml(r.status)}</span>`;
-    const badgeCat = `<span class="badge">${escapeHtml(r.category)}</span>`;
-    const badgeService = `<span class="badge">${escapeHtml(r.service)}</span>`;
-    const price = `<div class="price">希望金額：¥${Number(r.budget).toLocaleString()}</div>`;
-    const loc = `<div class="card-meta">場所：${escapeHtml(r.location || "未指定")}</div>`;
-    const meta = `<div class="card-meta">期限：${escapeHtml(r.deadline)} ／ 投稿: ${new Date(r.createdAt).toLocaleString()}</div>`;
+    const img = r.imageUrl ? `<img class="m-thumb" src="${escapeHtml(r.imageUrl)}" alt="">` : `<div class="m-thumb" aria-hidden="true"></div>`;
     const best = lowestPrice(r.responses);
-    const bestMeta = (best !== null) ? `<div class="card-meta">最良オファー：¥${best.toLocaleString()}</div>` : `<div class="card-meta">最良オファー：未提示</div>`;
-    const countdown = `<div class="counter" data-deadline="${escapeHtml(r.deadline)}"></div>`;
-
-    const watchActive = watchSet.has(r.id) ? "active" : "";
-    const watchLabel = watchSet.has(r.id) ? "ウォッチ中" : "ウォッチ";
+    const likeCount = countWatch(r.id);
+    const badgeLike = `<span class="badge like">♡ ${likeCount}</span>`;
+    const badgeBest = (best !== null) ? `<span class="badge best">最良 ¥${best.toLocaleString()}</span>` : `<span class="badge">最良オファー: 未提示</span>`;
+    const countdown = `<div class="m-countdown" data-deadline="${escapeHtml(r.deadline)}"></div>`;
 
     card.innerHTML = `
-      <div class="card-header">
-        ${thumb}
-        <div class="card-content">
-          <h3 class="card-title">${escapeHtml(r.title)}</h3>
-          <div>${badgeStatus}${badgeCat}${badgeService}</div>
-          ${price}
-          ${bestMeta}
-          ${loc}
-          ${meta}
-          ${countdown}
-          <div class="actions-row">
-            <button class="btn watch-btn ${watchActive}" data-id="${r.id}">${watchLabel}</button>
-          </div>
+      ${img}
+      <div class="m-body">
+        <h3 class="m-title">${escapeHtml(r.title)}</h3>
+        <div class="m-price">¥${Number(r.budget).toLocaleString()}</div>
+        <div class="m-meta">カテゴリ：${escapeHtml(r.category)} ／ 種類：${escapeHtml(r.service)} ／ 場所：${escapeHtml(r.location || "未指定")}</div>
+        <div class="m-meta">投稿：${new Date(r.createdAt).toLocaleString()} ／ 期限：${escapeHtml(r.deadline)}</div>
+        ${countdown}
+        <div class="m-badges">${badgeLike} ${badgeBest}</div>
+        <p class="m-desc">${escapeHtml(r.desc)}</p>
+        ${r.notes ? `<div class="m-meta">備考：${escapeHtml(r.notes)}</div>` : ""}
+        <div class="response-list" id="responses-${r.id}">
+          ${renderResponses(r.responses)}
+        </div>
+        ${renderResponseForm(r.id, r.status)}
+        <div class="response-actions" style="padding:10px;">
+          <button class="btn watch-btn" data-id="${r.id}">${isWatched(r.id) ? "ウォッチ中" : "ウォッチ"}</button>
         </div>
       </div>
-      <p class="card-desc">${escapeHtml(r.desc)}</p>
-      ${r.notes ? `<div class="card-meta">備考：${escapeHtml(r.notes)}</div>` : ""}
-      <div class="response-list" id="responses-${r.id}">
-        ${renderResponses(r.responses)}
-      </div>
-      ${renderResponseForm(r.id, r.status)}
     `;
 
     requestList.appendChild(card);
@@ -247,17 +233,14 @@ function render(){
     // ウォッチイベント
     const watchBtn = card.querySelector(".watch-btn");
     watchBtn.addEventListener("click", () => {
-      const id = r.id;
-      if (watchSet.has(id)) watchSet.delete(id);
-      else watchSet.add(id);
-      saveWatchSafely(watchSet);
+      toggleWatch(r.id);
       render();
     });
 
     // 応答フォームイベント
     const form = card.querySelector(`form[data-id="${r.id}"]`);
     if (form){
-      form.addEventListener("submit", e => {
+      form.addEventListener("submit", async e => {
         e.preventDefault();
         const price = Number(form.querySelector('input[name="price"]').value.trim());
         const eta = form.querySelector('input[name="eta"]').value.trim();
@@ -269,30 +252,23 @@ function render(){
         if (!comment) errs.push("コメントは必須です");
         if (errs.length){ alert(errs.join("\n")); return; }
 
-        const target = requests.find(x => x.id === r.id);
-        if (!target){ alert("対象リクエストが見つかりません"); return; }
-
-        target.responses.unshift({
-          price, comment, eta, imageUrl, createdAt: new Date().toISOString()
-        });
-
-        saveSafely(requests);
+        await addResponse(r.id, { price, comment, eta, imageUrl, createdAt: new Date().toISOString() });
+        requests = await loadAll();
         render();
       });
     }
   });
 
-  // カウントダウン更新
   updateCountdowns();
 }
 
-// カウントダウン
+// ===== カウントダウン =====
 function startTick(){
   if (tickTimer) clearInterval(tickTimer);
   tickTimer = setInterval(updateCountdowns, 1000);
 }
 function updateCountdowns(){
-  document.querySelectorAll(".counter").forEach(el => {
+  document.querySelectorAll(".m-countdown").forEach(el => {
     const dl = el.getAttribute("data-deadline");
     const txt = formatCountdown(dl);
     el.textContent = txt.text;
@@ -300,7 +276,7 @@ function updateCountdowns(){
   });
 }
 function formatCountdown(deadline){
-  const dl = new Date(deadline+"T23:59:59");
+  const dl = new Date(deadline.replace(/\//g,"-")+"T23:59:59");
   const now = new Date();
   const diff = dl - now;
   if (diff <= 0) return { text: "期限切れ", expired: true };
@@ -311,12 +287,12 @@ function formatCountdown(deadline){
   return { text: `残り ${d}日 ${h}時間 ${m}分 ${s}秒`, expired: false };
 }
 
-// レスポンス描画
+// ===== レスポンス描画 =====
 function renderResponses(responses){
   if (!responses?.length) return `<div class="response-card response-meta">まだ条件提示はありません。</div>`;
   const min = Math.min(...responses.map(r=>Number(r.price)));
   return responses.map(res => `
-    <div class="response-card ${Number(res.price)===min ? "best-offer" : ""}">
+    <div class="response-card ${Number(res.price)===min ? "best" : ""}">
       <div><strong>提示価格：</strong>¥${Number(res.price).toLocaleString()}</div>
       ${res.eta ? `<div class="response-meta">納期：${escapeHtml(res.eta)}</div>` : ""}
       ${res.imageUrl ? `<div class="response-meta">画像：<a href="${escapeHtml(res.imageUrl)}" target="_blank" rel="noopener">リンク</a></div>` : ""}
@@ -326,9 +302,7 @@ function renderResponses(responses){
   `).join("");
 }
 function renderResponseForm(id, status){
-  if (status === "締切"){
-    return `<div class="response-meta">このリクエストは締切です。条件提示はできません。</div>`;
-  }
+  if (status === "締切") return `<div class="response-meta" style="padding:10px;">このリクエストは締切です。条件提示はできません。</div>`;
   return `
     <form class="response-form" data-id="${id}">
       <input type="number" name="price" placeholder="提示価格（円）" required>
@@ -342,7 +316,18 @@ function renderResponseForm(id, status){
   `;
 }
 
-// ヘルパー群
+// ===== ウォッチ（♡） =====
+function isWatched(id){ return watchSet.has(id); }
+function toggleWatch(id){
+  if (watchSet.has(id)) watchSet.delete(id); else watchSet.add(id);
+  saveWatchSafely(watchSet);
+}
+function countWatch(id){
+  // 単純に「ウォッチ中なら1、そうでなければ0」で視覚化（単独端末用）。将来DBで合計数に拡張可。
+  return watchSet.has(id) ? 1 : 0;
+}
+
+// ===== ヘルパー =====
 function val(sel){ return document.querySelector(sel).value.trim(); }
 function escapeHtml(s){
   return String(s)
@@ -351,9 +336,7 @@ function escapeHtml(s){
 }
 function normalizeDate(s){
   const t = s.trim();
-  // YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
-  // YYYY/MM/DD -> YYYY-MM-DD
   if (/^\d{4}\/\d{2}\/\d{2}$/.test(t)) return t.replace(/\//g,"-");
   return null;
 }
@@ -368,7 +351,86 @@ function lowestPrice(responses){
   return vals.length ? Math.min(...vals) : null;
 }
 
-// JSON整形
+// ===== データ層（DB or LocalStorage） =====
+async function loadAll(){
+  if (!USE_DB) return loadLocal();
+  const { data, error } = await supabase.from("requests").select("*, responses(*)").order("createdAt", { ascending:false });
+  if (error){ console.warn("DB読み込み失敗。Localへフォールバック:", error.message); return loadLocal(); }
+  return data.map(normalizeRequestFromJson).filter(Boolean);
+}
+async function saveOne(req){
+  if (!USE_DB){ saveLocalAdd(req); return; }
+  const base = { ...req }; delete base.responses;
+  const { error } = await supabase.from("requests").insert(base);
+  if (error){ alert("DB保存に失敗しました: " + error.message); saveLocalAdd(req); }
+}
+async function addResponse(requestId, res){
+  if (!USE_DB){
+    const arr = loadLocal();
+    const target = arr.find(x => x.id === requestId);
+    if (!target) return;
+    target.responses.unshift(res);
+    saveLocalReplace(arr);
+    return;
+  }
+  const payload = { request_id: requestId, ...res };
+  const { error } = await supabase.from("responses").insert(payload);
+  if (error){ alert("DBレスポンス保存に失敗しました: " + error.message); 
+    // Local fallback
+    const arr = loadLocal();
+    const target = arr.find(x => x.id === requestId);
+    if (target){ target.responses.unshift(res); saveLocalReplace(arr); }
+  }
+}
+async function replaceAll(arr){
+  if (!USE_DB){ saveLocalReplace(arr); return; }
+  // DB上の既存削除→一括投入（簡易）
+  const { error: delErr } = await supabase.from("responses").delete().neq("id", 0);
+  if (delErr){ alert("DB初期化（responses）失敗: " + delErr.message); }
+  const { error: delErr2 } = await supabase.from("requests").delete().neq("id", 0);
+  if (delErr2){ alert("DB初期化（requests）失敗: " + delErr2.message); }
+  // requests投入
+  const reqs = arr.map(r => { const { responses, ...base } = r; return base; });
+  if (reqs.length){
+    const { error: insErr } = await supabase.from("requests").insert(reqs);
+    if (insErr){ alert("DB投入失敗: " + insErr.message); }
+  }
+  // responses投入
+  const flatRes = [];
+  arr.forEach(r => (r.responses||[]).forEach(x => flatRes.push({ request_id: r.id, ...x })));
+  if (flatRes.length){
+    const { error: insRErr } = await supabase.from("responses").insert(flatRes);
+    if (insRErr){ alert("DBレスポンス投入失敗: " + insRErr.message); }
+  }
+}
+
+// ===== LocalStorage 実装 =====
+function loadLocal(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeRequestFromJson).filter(Boolean);
+  }catch{
+    console.warn("Local読み込み失敗。空で開始。");
+    return [];
+  }
+}
+function saveLocalAdd(req){
+  const arr = loadLocal();
+  arr.unshift(req);
+  saveLocalReplace(arr);
+}
+function saveLocalReplace(arr){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+  }catch(e){
+    alert("Local保存に失敗しました: " + e.message);
+  }
+}
+
+// ===== 正規化 =====
 function normalizeRequestFromJson(r){
   try{
     const id = r.id ?? Date.now()+Math.random();
@@ -400,26 +462,7 @@ function normalizeResponseFromJson(x){
   }catch{ return null; }
 }
 
-// 保存・読み込み
-function loadRequestsSafely(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.map(normalizeRequestFromJson).filter(Boolean);
-  }catch{
-    console.warn("ローカルデータの読み込みに失敗。空データで開始します。");
-    return [];
-  }
-}
-function saveSafely(arr){
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
-  }catch(e){
-    alert("保存に失敗しました（ストレージ制限など）: " + e.message);
-  }
-}
+// ===== ウォッチ保存 =====
 function loadWatchSafely(){
   try{
     const raw = localStorage.getItem(WATCH_KEY);
