@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>逆オークション（強化版）</title>
+  <title>逆オークション（メルカリ風 + DB連携）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <link rel="stylesheet" href="./styles.css">
@@ -11,17 +11,17 @@
   <header class="header">
     <div class="header-left">
       <h1 class="title">逆オークション</h1>
-      <div class="subtitle">欲しいものをリクエストして、業者からの提案を待ちましょう。</div>
+      <div class="subtitle">欲しいものを提示し、提供者が条件を提案（メルカリ風UI・Supabase対応）</div>
     </div>
     <div class="header-right">
-      <button id="export-json" class="btn" aria-label="JSON書き出し">JSON書き出し</button>
-      <button id="import-json" class="btn btn-secondary" aria-label="JSON読み込み">JSON読み込み</button>
+      <button id="export-json" class="btn">JSON書き出し</button>
+      <button id="import-json" class="btn btn-secondary">JSON読み込み</button>
     </div>
   </header>
 
   <main class="container" role="main">
     <!-- 検索／絞り込み／並び替え／ページ設定 -->
-    <section class="controls" aria-label="検索と絞り込み">
+    <section class="controls">
       <div class="control-group">
         <label class="label" for="search-input">キーワード検索</label>
         <input type="search" id="search-input" placeholder="商品名・説明・場所で検索">
@@ -43,7 +43,7 @@
         <label class="label" for="sort-select">並び替え</label>
         <select id="sort-select">
           <option value="newest">新着順</option>
-          <option value="lowest">希望価格（最安）</option>
+          <option value="lowest">希望金額（最安）</option>
           <option value="deadline">期限が近い順</option>
           <option value="bestOffer">最良オファー（提示最安）</option>
         </select>
@@ -51,15 +51,15 @@
       <div class="control-group">
         <label class="label" for="page-size">1ページの件数</label>
         <select id="page-size">
-          <option value="6">6</option>
           <option value="12" selected>12</option>
           <option value="24">24</option>
+          <option value="48">48</option>
         </select>
       </div>
     </section>
 
-    <!-- リクエスト投稿 -->
-    <section class="form-section" aria-label="リクエスト投稿">
+    <!-- リクエスト投稿（メルカリ風） -->
+    <section class="form-section">
       <h2>欲しいもののリクエスト</h2>
       <form id="request-form" novalidate>
         <div class="grid-2">
@@ -131,9 +131,9 @@
 
     <section class="status"><div id="status-text" class="muted"></div></section>
 
-    <!-- リスト -->
-    <section class="list-section" aria-label="リクエスト一覧">
-      <div id="request-list" class="card-list"></div>
+    <!-- メルカリ風カードリスト -->
+    <section class="list-section">
+      <div id="request-list" class="mercari-grid"></div>
       <div class="pagination">
         <button id="prev-page" class="btn" disabled>前へ</button>
         <span id="page-info" class="muted"></span>
@@ -147,7 +147,7 @@
     <div class="modal-content">
       <h3 id="modal-title">JSON読み込み</h3>
       <p class="muted">data.sample.json の内容を貼り付けて「読み込む」を押してください。</p>
-      <textarea id="import-text" placeholder='[ { "title": "...", "category": "...", ... } ]' aria-label="JSON入力欄"></textarea>
+      <textarea id="import-text" placeholder='[ { "title": "...", "category": "...", ... } ]'></textarea>
       <div class="modal-actions">
         <button id="modal-import" class="btn btn-primary">読み込む</button>
         <button id="modal-close" class="btn btn-secondary">閉じる</button>
@@ -158,6 +158,8 @@
 
   <footer class="footer"><small>&copy; TASQ JAPAN</small></footer>
 
+  <!-- Supabase JS（CDN）。設定が未入力なら自動でローカル保存にフォールバックします -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./script.js"></script>
 </body>
 </html>
