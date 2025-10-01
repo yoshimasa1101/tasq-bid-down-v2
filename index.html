@@ -8,122 +8,36 @@
 </head>
 <body>
   <header class="header">
-    <div>
-      <h1 class="title">逆オークション</h1>
-      <div class="subtitle">クリック中心UIで素早く投稿</div>
-    </div>
-    <div>
-      <button id="open-create" class="btn btn-primary">リクエストを追加</button>
-      <button id="export-json" class="btn">JSONを出力</button>
-      <button id="import-json" class="btn">JSONを読み込む</button>
-    </div>
+    <h1 class="title">逆オークション</h1>
+    <div class="subtitle">Yahoo!＋メルカリの良いとこ取りUI</div>
   </header>
 
   <main class="container">
-    <section class="controls">
-      <div class="control-group">
-        <span class="label">並び替え</span>
-        <select id="sort-select">
-          <option value="newest">新着順</option>
-          <option value="lowest">希望価格の安い順</option>
-          <option value="deadline">期限が近い順</option>
-          <option value="bestOffer">最安オファー順</option>
-          <option value="popular">人気順（ウォッチ数）</option>
-        </select>
+    <!-- リクエスト作成フォーム -->
+    <section class="form-section grid-2">
+      <div class="form-field">
+        <label>開始日時</label>
+        <div id="start-calendar" class="calendar"></div>
+        <input type="time" id="start-time" value="09:00">
+        <input type="hidden" id="start-date">
       </div>
-      <div class="control-group">
-        <span class="label">検索（商品名）</span>
-        <input id="search-input" type="text" placeholder="例：iPhone、スニーカー など">
+      <div class="form-field">
+        <label>終了日時</label>
+        <div id="end-calendar" class="calendar"></div>
+        <input type="time" id="end-time" value="23:59">
+        <input type="hidden" id="end-date">
+        <div class="quick-deadline" style="margin-top:6px;">
+          <button class="btn btn-secondary qdl" data-dl="today">今日中</button>
+          <button class="btn btn-secondary qdl" data-dl="3days">3日以内</button>
+          <button class="btn btn-secondary qdl" data-dl="1week">1週間以内</button>
+          <button class="btn btn-secondary qdl" data-dl="1month">1か月以内</button>
+        </div>
       </div>
     </section>
 
+    <!-- リスト表示 -->
     <section id="list" class="mercari-grid"></section>
-
-    <div class="pagination">
-      <button id="prev-page" class="btn">前へ</button>
-      <div id="page-info" class="muted">1 / 1</div>
-      <button id="next-page" class="btn">次へ</button>
-    </div>
-
-    <footer class="footer">TASQ JAPAN Reverse Auction MVP</footer>
   </main>
-
-  <!-- 作成モーダル -->
-  <div id="create-modal" class="modal hidden">
-    <div class="modal-content">
-      <h2 style="margin:0 0 10px;">欲しいもののリクエスト</h2>
-
-      <!-- カテゴリ -->
-      <div class="form-section">
-        <div class="form-field">
-          <label>カテゴリ</label>
-          <div id="cat-buttons" class="option-buttons"></div>
-        </div>
-        <div class="form-field">
-          <label>サブカテゴリ</label>
-          <div id="subcat-buttons" class="option-buttons"></div>
-        </div>
-      </div>
-
-      <!-- ブランド・メーカー（クリック＋補助検索） -->
-      <div class="form-section">
-        <div class="form-field">
-          <label>ブランド／メーカー</label>
-          <input id="brand-search" type="text" placeholder="補助検索（入力は任意）">
-          <div id="brand-buttons" class="option-buttons" style="margin-top:8px;"></div>
-        </div>
-      </div>
-
-      <!-- 価格帯・状態・地域 -->
-      <div class="form-section grid-3">
-        <div class="form-field">
-          <label>価格帯</label>
-          <div id="price-buttons" class="option-buttons"></div>
-        </div>
-        <div class="form-field">
-          <label>商品状態</label>
-          <div id="cond-buttons" class="option-buttons"></div>
-        </div>
-        <div class="form-field">
-          <label>地域</label>
-          <div id="region-buttons" class="option-buttons"></div>
-        </div>
-      </div>
-
-      <!-- タイトル（最小限）＋締切日時 -->
-      <div class="form-section grid-2">
-        <div class="form-field">
-          <label>商品名（短く）</label>
-          <input id="title-input" type="text" placeholder="例：iPhone 13 128GB（ブルー）">
-          <div class="muted">文章は短くOK。基本はクリックで選べます。</div>
-        </div>
-        <div class="form-field">
-          <label>締切日時</label>
-          <input id="deadline-input" type="datetime-local">
-          <div class="quick-deadline" style="margin-top:6px;">
-            <button class="btn btn-secondary qdl" data-dl="today">今日中</button>
-            <button class="btn btn-secondary qdl" data-dl="3days">3日以内</button>
-            <button class="btn btn-secondary qdl" data-dl="1week">1週間以内</button>
-            <button class="btn btn-secondary qdl" data-dl="1month">1か月以内</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 添付ファイル -->
-      <div class="form-section">
-        <div class="form-field">
-          <label>添付ファイル（任意）</label>
-          <input id="file-input" type="file" multiple>
-          <div class="muted">画像や仕様書などがあれば追加（任意）</div>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button id="cancel-create" class="btn">キャンセル</button>
-        <button id="submit-create" class="btn btn-primary">リクエストを提出</button>
-      </div>
-    </div>
-  </div>
 
   <script src="./script.js"></script>
 </body>
