@@ -31,67 +31,52 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
 .status{margin:8px 0}
 .muted{color:var(--muted);font-size:13px}
 
-/* メルカリ風カード（正方形大サムネ + 赤字価格 + 2行タイトル） */
-.mercari-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:12px;
-}
+/* メルカリ風カード */
+.mercari-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
 @media (max-width:1024px){ .mercari-grid{grid-template-columns:repeat(3,1fr);} }
 @media (max-width:768px){ .mercari-grid{grid-template-columns:repeat(2,1fr);} }
 @media (max-width:520px){ .mercari-grid{grid-template-columns:1fr;} }
 
-.m-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:0 1px 3px rgba(0,0,0,.06);
-  display:flex; flex-direction:column;
-}
-.m-thumb{
-  width:100%; aspect-ratio:1/1; object-fit:cover; background:#f3f4f6;
-}
-.m-body{ padding:10px; }
-.m-title{
-  margin:0; font-size:14px; font-weight:600; line-height:1.4;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
-}
-.m-meta{ font-size:12px; color:var(--muted); margin-top:4px; }
-.m-price{ color:var(--accent); font-weight:800; margin-top:6px; font-size:16px; }
-.m-badges{ margin-top:6px; display:flex; flex-wrap:wrap; gap:6px; }
-.badge{ display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border:1px solid var(--border); border-radius:999px; font-size:11px; color:var(--muted); }
-.badge.like{ border-color:#fecaca; background:#fff1f2; color:#b91c1c; }
-.badge.best{ border-color:#bfdbfe; background:#eff6ff; color:#1d4ed8; }
+.m-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;}
+.m-thumb{width:100%;aspect-ratio:1/1;object-fit:cover;background:#f3f4f6;}
+.m-body{padding:10px;}
+.m-title{margin:0;font-size:14px;font-weight:600;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.m-meta{font-size:12px;color:var(--muted);margin-top:4px;}
+.m-price{color:var(--accent);font-weight:800;margin-top:6px;font-size:16px;}
+.m-badges{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border:1px solid var(--border);border-radius:999px;font-size:11px;color:var(--muted);}
+.badge.like{border-color:#fecaca;background:#fff1f2;color:#b91c1c;}
+.badge.best{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8;}
 
-.m-desc{ margin:8px 0 0 0; font-size:13px; line-height:1.5; color:#374151; }
-.m-countdown{ font-size:12px; color:var(--warn); margin-top:4px; }
-.m-countdown.expired{ color:var(--danger); }
+.m-desc{margin:8px 0 0 0;font-size:13px;line-height:1.5;color:#374151;}
+.m-countdown{font-size:12px;color:var(--warn);margin-top:4px;}
+.m-countdown.expired{color:var(--danger);}
+.m-countdown.urgent{color:#dc2626;font-weight:700;}
 
-.response-list{ margin-top:10px; padding:10px; border-top:1px dashed var(--border); }
-.response-card{ font-size:13px; color:var(--text); padding:8px; border:1px solid var(--border); border-radius:8px; margin-bottom:8px; background:#fbfbff; }
-.response-card.best{ border-color:#93c5fd; background:#eff6ff; }
-.response-meta{ font-size:12px; color:var(--muted); }
-.response-comment{ margin-top:4px; }
+.response-list{margin-top:10px;padding:10px;border-top:1px dashed var(--border);}
+.response-card{font-size:13px;color:var(--text);padding:8px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;background:#fbfbff;}
+.response-card.best{border-color:#93c5fd;background:#eff6ff;}
+.response-meta{font-size:12px;color:var(--muted);}
+.response-comment{margin-top:4px;}
 
-.response-form{ padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.response-form input,.response-form textarea{ padding:8px; border:1px solid var(--border); border-radius:6px; background:#fff; }
-.response-form textarea{ grid-column:1/-1; min-height:70px; }
-.response-actions{ display:flex; justify-content:flex-end; grid-column:1/-1; }
+.response-form{padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.response-form input,.response-form textarea{padding:8px;border:1px solid var(--border);border-radius:6px;background:#fff;}
+.response-form textarea{grid-column:1/-1;min-height:70px;}
+.response-actions{display:flex;justify-content:flex-end;grid-column:1/-1;}
 
-.pagination{ display:flex; align-items:center; gap:12px; justify-content:center; margin:16px 0; }
-.footer{ text-align:center; color:var(--muted); font-size:12px; margin:24px 0; }
+.pagination{display:flex;align-items:center;gap:12px;justify-content:center;margin:16px 0;}
+.footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0;}
 
-/* ボタン */
-.btn{ padding:8px 12px; border:1px solid var(--border); border-radius:6px; background:#fff; color:#000; cursor:pointer }
-.btn:hover{ background:#f3f4f6 }
-.btn-primary{ background:var(--primary); color:#fff; border-color:var(--primary) }
-.btn-primary:hover{ opacity:.9 }
-.btn-secondary{ background:#eef2ff; color:#374151; border-color:#c7d2fe }
+.btn{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;color:#000;cursor:pointer}
+.btn:hover{background:#f3f4f6}
+.btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.btn-primary:hover{opacity:.9}
+.btn-secondary{background:#eef2ff;color:#374151;border-color:#c7d2fe}
 
-/* モーダル */
-.modal{ position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center }
-.modal.hidden{ display:none }
-.modal-content{ width:min(720px,94vw); background:#fff; border-radius:10px; padding:16px; border:1px solid var(--border) }
-.modal-content textarea{ width:100%; min-height:220px; padding:8px; border:1px solid var(--border); border-radius:6px }
-.modal-actions{ display:flex; justify-content:flex-end; margin-top:10px }
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
+.modal.hidden{display:none}
+.modal-content{width:min(720px,94vw);background:#fff;border-radius:10px;padding:16px;border:1px solid var(--border)}
+.modal-content textarea{width:100%;min-height:220px;padding:8px;border:1px solid var(--border);border-radius:6px}
+.modal-actions{display:flex;justify-content:flex-end;margin-top:10px}
+
+.hidden{display:none;}
