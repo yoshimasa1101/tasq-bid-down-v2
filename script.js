@@ -1,10 +1,11 @@
 // LocalStorage キー
-const STORAGE_KEY = "tasq_reverse_auction_requests_v2";
+const STORAGE_KEY = "tasq_reverse_auction_requests_v3";
 const WATCH_KEY = "tasq_reverse_auction_watch_v1";
 
 // DOM
 const searchInput = document.getElementById("search-input");
 const categoryFilter = document.getElementById("category-filter");
+const serviceFilter = document.getElementById("service-filter");
 const sortSelect = document.getElementById("sort-select");
 const pageSizeSel = document.getElementById("page-size");
 
@@ -40,6 +41,7 @@ startTick();
 // イベント
 searchInput.addEventListener("input", () => { page = 1; render(); });
 categoryFilter.addEventListener("change", () => { page = 1; render(); });
+serviceFilter.addEventListener("change", () => { page = 1; render(); });
 sortSelect.addEventListener("change", () => { page = 1; render(); });
 pageSizeSel.addEventListener("change", () => { page = 1; render(); });
 
@@ -52,17 +54,24 @@ requestForm.addEventListener("submit", e => {
 
   const title = val("#req-title");
   const category = val("#req-category");
+  const service = val("#req-service");
+  const location = val("#req-location");
   const desc = val("#req-desc");
   const budget = Number(val("#req-budget"));
-  const deadline = val("#req-deadline");
+  const deadlineRaw = val("#req-deadline"); // YYYY-MM-DD または YYYY/MM/DD
   const imageUrl = val("#req-image");
+  const notes = val("#req-notes");
 
   const errors = [];
   if (!title) errors.push("商品名は必須です");
   if (!category) errors.push("カテゴリは必須です");
+  if (!service) errors.push("サービスの種類は必須です");
+  if (!location) errors.push("取引場所は必須です");
   if (!desc) errors.push("詳細条件は必須です");
-  if (Number.isNaN(budget) || budget < 0) errors.push("希望価格は0以上の数値を入力してください");
-  if (!isValidDate(deadline)) errors.push("期限はYYYY-MM-DD形式で入力してください");
+  if (Number.isNaN(budget) || budget < 0) errors.push("希望金額は0以上の数値を入力してください");
+
+  const deadline = normalizeDate(deadlineRaw); // YYYY-MM-DD に正規化
+  if (!deadline) errors.push("期限は YYYY-MM-DD または YYYY/MM/DD 形式で入力してください");
 
   if (errors.length){
     formError.textContent = errors.join("／");
@@ -71,10 +80,11 @@ requestForm.addEventListener("submit", e => {
 
   const req = {
     id: Date.now(),
-    title, category, desc,
+    title, category, service, location, desc,
     budget,
-    deadline, // YYYY-MM-DD
+    deadline,
     imageUrl: imageUrl || "",
+    notes: notes || "",
     status: computeStatus(deadline),
     createdAt: new Date().toISOString(),
     responses: []
@@ -139,6 +149,7 @@ modalImport.addEventListener("click", () => {
 function render(){
   const q = searchInput.value.trim().toLowerCase();
   const cat = categoryFilter.value;
+  const service = serviceFilter.value;
   const sort = sortSelect.value;
   const pageSize = Number(pageSizeSel.value);
 
@@ -146,11 +157,13 @@ function render(){
 
   // フィルタ
   if (cat !== "all") arr = arr.filter(r => r.category === cat);
+  if (service !== "all") arr = arr.filter(r => r.service === service);
   if (q){
     arr = arr.filter(r =>
       r.title.toLowerCase().includes(q) ||
       r.desc.toLowerCase().includes(q) ||
-      r.category.toLowerCase().includes(q)
+      r.category.toLowerCase().includes(q) ||
+      (r.location || "").toLowerCase().includes(q)
     );
   }
 
@@ -166,7 +179,7 @@ function render(){
   }
 
   // ステータス表示
-  statusText.textContent = `表示件数：${arr.length}件（検索: "${q||"-"}", カテゴリ: ${cat}, 並び替え: ${sort}）`;
+  statusText.textContent = `表示件数：${arr.length}件（検索: "${q||"-"}", カテゴリ: ${cat}, 種類: ${service}, 並び替え: ${sort}）`;
 
   // ページング
   const total = arr.length;
@@ -194,7 +207,9 @@ function render(){
     const thumb = r.imageUrl ? `<img class="card-thumb" src="${escapeHtml(r.imageUrl)}" alt="">` : `<div class="card-thumb" aria-hidden="true"></div>`;
     const badgeStatus = `<span class="badge">${escapeHtml(r.status)}</span>`;
     const badgeCat = `<span class="badge">${escapeHtml(r.category)}</span>`;
-    const price = `<div class="price">希望価格：¥${Number(r.budget).toLocaleString()}</div>`;
+    const badgeService = `<span class="badge">${escapeHtml(r.service)}</span>`;
+    const price = `<div class="price">希望金額：¥${Number(r.budget).toLocaleString()}</div>`;
+    const loc = `<div class="card-meta">場所：${escapeHtml(r.location || "未指定")}</div>`;
     const meta = `<div class="card-meta">期限：${escapeHtml(r.deadline)} ／ 投稿: ${new Date(r.createdAt).toLocaleString()}</div>`;
     const best = lowestPrice(r.responses);
     const bestMeta = (best !== null) ? `<div class="card-meta">最良オファー：¥${best.toLocaleString()}</div>` : `<div class="card-meta">最良オファー：未提示</div>`;
@@ -208,9 +223,10 @@ function render(){
         ${thumb}
         <div class="card-content">
           <h3 class="card-title">${escapeHtml(r.title)}</h3>
-          <div>${badgeStatus}${badgeCat}</div>
+          <div>${badgeStatus}${badgeCat}${badgeService}</div>
           ${price}
           ${bestMeta}
+          ${loc}
           ${meta}
           ${countdown}
           <div class="actions-row">
@@ -219,6 +235,7 @@ function render(){
         </div>
       </div>
       <p class="card-desc">${escapeHtml(r.desc)}</p>
+      ${r.notes ? `<div class="card-meta">備考：${escapeHtml(r.notes)}</div>` : ""}
       <div class="response-list" id="responses-${r.id}">
         ${renderResponses(r.responses)}
       </div>
@@ -332,7 +349,14 @@ function escapeHtml(s){
     .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
     .replaceAll('"',"&quot;").replaceAll("'","&#39;");
 }
-function isValidDate(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s); }
+function normalizeDate(s){
+  const t = s.trim();
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+  // YYYY/MM/DD -> YYYY-MM-DD
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(t)) return t.replace(/\//g,"-");
+  return null;
+}
 function computeStatus(deadline){
   const today = new Date().toISOString().slice(0,10);
   if (deadline < today) return "締切";
@@ -350,15 +374,18 @@ function normalizeRequestFromJson(r){
     const id = r.id ?? Date.now()+Math.random();
     const title = String(r.title||"").trim();
     const category = String(r.category||"").trim();
+    const service = String(r.service||"").trim() || "提案募集";
+    const location = String(r.location||"").trim();
     const desc = String(r.desc||"").trim();
     const budget = Number(r.budget);
-    const deadline = String(r.deadline||"").slice(0,10);
+    const deadline = normalizeDate(String(r.deadline||"").trim());
     const imageUrl = String(r.imageUrl||"").trim();
-    const status = computeStatus(deadline);
+    const notes = String(r.notes||"").trim();
+    const status = deadline ? computeStatus(deadline) : "募集中";
     const createdAt = r.createdAt || new Date().toISOString();
     const responses = Array.isArray(r.responses) ? r.responses.map(normalizeResponseFromJson).filter(Boolean) : [];
-    if (!title || !category || !desc || Number.isNaN(budget) || !isValidDate(deadline)) return null;
-    return { id, title, category, desc, budget, deadline, imageUrl, status, createdAt, responses };
+    if (!title || !category || !desc || Number.isNaN(budget) || !deadline) return null;
+    return { id, title, category, service, location, desc, budget, deadline, imageUrl, notes, status, createdAt, responses };
   }catch{ return null; }
 }
 function normalizeResponseFromJson(x){
