@@ -162,4 +162,4 @@ function onSubmitCreate(){
   const priceInfo = DATASETS.priceRanges.find(p => p.id===selected.price) || {min:null,max:null};
   const newReq = {
     id: crypto.randomUUID?.() || (Date.now()+"-"+Math.random()),
-    title:
+    title
