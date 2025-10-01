@@ -140,5 +140,26 @@ function selectToggle(btn, key){
   }
 }
 
-// ===== JSON入出力など（省略せず残す） =====
-// ...（ここに前回までの exportJSON, importJSON, render, countdown, watch機能などをそのまま残す）
+// ===== 作成送信 =====
+function onSubmitCreate(){
+  const title = qs("#title-input").value.trim();
+  const startDate = qs("#start-date").value;
+  const startTime = qs("#start-time").value;
+  const endDate = qs("#end-date").value;
+  const endTime = qs("#end-time").value;
+
+  if (!selected.cat)    return alert("カテゴリを選んでください");
+  if (!selected.subcat) return alert("サブカテゴリを選んでください");
+  if (!selected.item)   return alert("商品項目を選んでください");
+  if (!selected.price)  return alert("価格帯を選んでください");
+  if (!startDate || !startTime) return alert("開始日時を選んでください");
+  if (!endDate || !endTime)     return alert("終了日時を選んでください");
+
+  const startAt = `${startDate}T${startTime}`;
+  const endAt   = `${endDate}T${endTime}`;
+  if (new Date(endAt) <= new Date(startAt)) return alert("終了日時は開始日時より後にしてください");
+
+  const priceInfo = DATASETS.priceRanges.find(p => p.id===selected.price) || {min:null,max:null};
+  const newReq = {
+    id: crypto.randomUUID?.() || (Date.now()+"-"+Math.random()),
+    title:
