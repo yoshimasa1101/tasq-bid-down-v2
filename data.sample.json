@@ -50,6 +50,14 @@
     "deadline": "2025-10-12",
     "imageUrl": "https://images.unsplash.com/photo-1511367461989-f85a21fda167?w=800&q=80",
     "createdAt": "2025-10-01T08:30:00.000Z",
-    "responses": []
+    "responses": [
+      {
+        "price": 11000,
+        "comment": "入門向けセット。札幌市内配送込み。",
+        "eta": "1週間",
+        "imageUrl": "",
+        "createdAt": "2025-10-01T15:00:00.000Z"
+      }
+    ]
   }
 ]
