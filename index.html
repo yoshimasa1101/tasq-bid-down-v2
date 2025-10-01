@@ -1,170 +1,130 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>逆オークション（画像アップロード＋ウォッチ集計）</title>
+  <meta charset="utf-8">
+  <title>逆オークション</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="color-scheme" content="light dark">
-  <link rel="stylesheet" href="./styles.css">
+  <link href="./styles.css" rel="stylesheet">
 </head>
 <body>
   <header class="header">
-    <div class="header-left">
+    <div>
       <h1 class="title">逆オークション</h1>
-      <div class="subtitle">メルカリ風UI・画像アップロード・ウォッチ数集計・Supabase対応</div>
+      <div class="subtitle">クリック中心UIで素早く投稿</div>
     </div>
-    <div class="header-right">
-      <button id="export-json" class="btn">JSON書き出し</button>
-      <button id="import-json" class="btn btn-secondary">JSON読み込み</button>
+    <div>
+      <button id="open-create" class="btn btn-primary">リクエストを追加</button>
+      <button id="export-json" class="btn">JSONを出力</button>
+      <button id="import-json" class="btn">JSONを読み込む</button>
     </div>
   </header>
 
-  <main class="container" role="main">
-    <!-- 検索／絞り込み／並び替え／ページ設定 -->
+  <main class="container">
     <section class="controls">
       <div class="control-group">
-        <label class="label" for="search-input">キーワード検索</label>
-        <input type="search" id="search-input" placeholder="商品名・説明・場所で検索">
-      </div>
-      <div class="control-group">
-        <label class="label" for="category-filter">カテゴリ</label>
-        <select id="category-filter"><option value="all">すべて</option></select>
-      </div>
-      <div class="control-group">
-        <label class="label" for="service-filter">サービスの種類</label>
-        <select id="service-filter">
-          <option value="all">すべて</option>
-          <option value="提案募集">提案募集</option>
-          <option value="見積依頼">見積依頼</option>
-          <option value="入手代行">入手代行</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label class="label" for="sort-select">並び替え</label>
+        <span class="label">並び替え</span>
         <select id="sort-select">
           <option value="newest">新着順</option>
-          <option value="lowest">希望金額（最安）</option>
+          <option value="lowest">希望価格の安い順</option>
           <option value="deadline">期限が近い順</option>
-          <option value="bestOffer">最良オファー（提示最安）</option>
+          <option value="bestOffer">最安オファー順</option>
+          <option value="popular">人気順（ウォッチ数）</option>
         </select>
       </div>
       <div class="control-group">
-        <label class="label" for="page-size">1ページの件数</label>
-        <select id="page-size">
-          <option value="12" selected>12</option>
-          <option value="24">24</option>
-          <option value="48">48</option>
-        </select>
+        <span class="label">検索（商品名）</span>
+        <input id="search-input" type="text" placeholder="例：iPhone、スニーカー など">
       </div>
     </section>
 
-    <!-- リクエスト投稿（画像アップロード対応） -->
-    <section class="form-section">
-      <h2>欲しいもののリクエスト</h2>
-      <form id="request-form" novalidate>
-        <div class="grid-2">
-          <div class="form-field">
-            <label for="req-title">商品名</label>
-            <input type="text" id="req-title" placeholder="例: 美容液 400mL / 電動自転車 26インチ" required>
-          </div>
-          <div class="form-field">
-            <label for="req-category">カテゴリ</label>
-            <select id="req-category" required>
-              <option value="">選択してください</option>
-              <option value="家電">家電</option>
-              <option value="家具">家具</option>
-              <option value="ホビー">ホビー</option>
-              <option value="ファッション">ファッション</option>
-              <option value="コスメ">コスメ</option>
-              <option value="PC・ガジェット">PC・ガジェット</option>
-              <option value="その他">その他</option>
-            </select>
-          </div>
-        </div>
+    <section id="list" class="mercari-grid"></section>
 
-        <div class="grid-3">
-          <div class="form-field">
-            <label for="req-service">サービスの種類</label>
-            <select id="req-service" required>
-              <option value="">選択してください</option>
-              <option value="提案募集">提案募集</option>
-              <option value="見積依頼">見積依頼</option>
-              <option value="入手代行">入手代行</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="req-location">希望の取引場所</label>
-            <input type="text" id="req-location" placeholder="例: 東京 / 北海道 恵庭市 / オンライン" required>
-          </div>
-          <div class="form-field">
-            <label for="req-budget">希望金額（円）</label>
-            <input type="number" id="req-budget" min="0" placeholder="例: 20000" required inputmode="numeric">
-          </div>
-        </div>
+    <div class="pagination">
+      <button id="prev-page" class="btn">前へ</button>
+      <div id="page-info" class="muted">1 / 1</div>
+      <button id="next-page" class="btn">次へ</button>
+    </div>
 
-        <div class="form-field">
-          <label for="req-desc">詳細条件</label>
-          <textarea id="req-desc" placeholder="できるだけ安く、サイズ・材質・状態・付属品などの希望条件を記載" required></textarea>
-        </div>
-
-        <div class="grid-3">
-          <div class="form-field">
-            <label for="req-deadline">希望納期（期限）</label>
-            <input type="text" id="req-deadline" placeholder="YYYY-MM-DD または YYYY/MM/DD" required>
-          </div>
-          <div class="form-field">
-            <label for="req-image">参考画像URL（任意）</label>
-            <input type="url" id="req-image" placeholder="https://...">
-          </div>
-          <div class="form-field">
-            <label for="req-file">画像アップロード（任意／Supabaseのみ）</label>
-            <input type="file" id="req-file" accept="image/*">
-          </div>
-        </div>
-
-        <div class="form-field">
-          <label for="req-notes">備考（任意）</label>
-          <input type="text" id="req-notes" placeholder="配送希望、手渡し可など">
-        </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">リクエストを投稿</button>
-        </div>
-        <p id="form-error" class="error-text" role="alert" aria-live="polite"></p>
-      </form>
-    </section>
-
-    <section class="status"><div id="status-text" class="muted"></div></section>
-
-    <!-- メルカリ風カードリスト -->
-    <section class="list-section">
-      <div id="request-list" class="mercari-grid"></div>
-      <div class="pagination">
-        <button id="prev-page" class="btn" disabled>前へ</button>
-        <span id="page-info" class="muted"></span>
-        <button id="next-page" class="btn" disabled>次へ</button>
-      </div>
-    </section>
+    <footer class="footer">TASQ JAPAN Reverse Auction MVP</footer>
   </main>
 
-  <!-- JSONインポートモーダル -->
-  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <!-- 作成モーダル -->
+  <div id="create-modal" class="modal hidden">
     <div class="modal-content">
-      <h3 id="modal-title">JSON読み込み</h3>
-      <p class="muted">data.sample.json の内容を貼り付けて「読み込む」を押してください。</p>
-      <textarea id="import-text" placeholder='[ { "title": "...", "category": "...", ... } ]'></textarea>
-      <div class="modal-actions">
-        <button id="modal-import" class="btn btn-primary">読み込む</button>
-        <button id="modal-close" class="btn btn-secondary">閉じる</button>
+      <h2 style="margin:0 0 10px;">欲しいもののリクエスト</h2>
+
+      <!-- カテゴリ -->
+      <div class="form-section">
+        <div class="form-field">
+          <label>カテゴリ</label>
+          <div id="cat-buttons" class="option-buttons"></div>
+        </div>
+        <div class="form-field">
+          <label>サブカテゴリ</label>
+          <div id="subcat-buttons" class="option-buttons"></div>
+        </div>
       </div>
-      <p id="import-error" class="error-text" role="alert" aria-live="polite"></p>
+
+      <!-- ブランド・メーカー（クリック＋補助検索） -->
+      <div class="form-section">
+        <div class="form-field">
+          <label>ブランド／メーカー</label>
+          <input id="brand-search" type="text" placeholder="補助検索（入力は任意）">
+          <div id="brand-buttons" class="option-buttons" style="margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <!-- 価格帯・状態・地域 -->
+      <div class="form-section grid-3">
+        <div class="form-field">
+          <label>価格帯</label>
+          <div id="price-buttons" class="option-buttons"></div>
+        </div>
+        <div class="form-field">
+          <label>商品状態</label>
+          <div id="cond-buttons" class="option-buttons"></div>
+        </div>
+        <div class="form-field">
+          <label>地域</label>
+          <div id="region-buttons" class="option-buttons"></div>
+        </div>
+      </div>
+
+      <!-- タイトル（最小限）＋締切日時 -->
+      <div class="form-section grid-2">
+        <div class="form-field">
+          <label>商品名（短く）</label>
+          <input id="title-input" type="text" placeholder="例：iPhone 13 128GB（ブルー）">
+          <div class="muted">文章は短くOK。基本はクリックで選べます。</div>
+        </div>
+        <div class="form-field">
+          <label>締切日時</label>
+          <input id="deadline-input" type="datetime-local">
+          <div class="quick-deadline" style="margin-top:6px;">
+            <button class="btn btn-secondary qdl" data-dl="today">今日中</button>
+            <button class="btn btn-secondary qdl" data-dl="3days">3日以内</button>
+            <button class="btn btn-secondary qdl" data-dl="1week">1週間以内</button>
+            <button class="btn btn-secondary qdl" data-dl="1month">1か月以内</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 添付ファイル -->
+      <div class="form-section">
+        <div class="form-field">
+          <label>添付ファイル（任意）</label>
+          <input id="file-input" type="file" multiple>
+          <div class="muted">画像や仕様書などがあれば追加（任意）</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="cancel-create" class="btn">キャンセル</button>
+        <button id="submit-create" class="btn btn-primary">リクエストを提出</button>
+      </div>
     </div>
   </div>
 
-  <footer class="footer"><small>&copy; TASQ JAPAN</small></footer>
-
-  <!-- Supabase JS（CDN） -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./script.js"></script>
 </body>
 </html>
