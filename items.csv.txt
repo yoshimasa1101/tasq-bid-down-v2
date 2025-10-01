@@ -1,7 +1,0 @@
-category,brand,name,price,image,description
-日用品,花王,ハンドソープ,300,https://example.com/soap.jpg,手肌に優しい泡タイプのハンドソープです
-飲料,サントリー,天然水,120,https://example.com/water.jpg,南アルプスの天然水 500ml ペットボトル
-お菓子,明治,チョコレート,150,https://example.com/choco.jpg,カカオたっぷりのミルクチョコレート
-日用品,ユニチャーム,マスク,500,https://example.com/mask.jpg,花粉・ウイルス対策用の不織布マスク
-飲料,コカコーラ,コーラ,160,https://example.com/coke.jpg,定番の炭酸飲料コカコーラ 350ml 缶
-お菓子,カルビー,ポテトチップス,130,https://example.com/potato.jpg,うすしお味のポテトチップス
