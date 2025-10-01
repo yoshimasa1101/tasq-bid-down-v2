@@ -1,29 +1,20 @@
-# 逆オークション（画像アップロード＋ウォッチ数集計）
-
-メルカリ風UIに加え、画像アップロード（Supabase Storage）とウォッチ数のDB集計に対応しました。  
-Supabase未設定でもLocalStorageで動作し、設定すると自動でクラウド共有に切り替わります。
+# 逆オークション（最終完成版）
 
 ## 機能
-- リクエスト投稿：商品名／カテゴリ／サービス種類／場所／詳細／希望金額／期限／画像URL／備考／画像アップロード（Supabase設定時）
-- 検索・カテゴリ絞り込み・サービス絞り込み・並び替え（新着／希望金額最安／期限が近い順／最良オファー）
-- メルカリ風カード：大画像・赤字価格・2行タイトル・最良オファーバッジ
-- 期限カウントダウン（日・時・分・秒）
-- ウォッチ（♡）機能：DB集計表示（Supabase設定時）／端末内表示（Local）
+- メルカリ風UI（大画像・赤字価格・2行タイトル・最良オファーバッジ）
+- 画像アップロード（Supabase Storage）
+- ウォッチ数集計（全体表示／Supabase設定時）
+- リアルタイム更新（responses・watchersが即時反映）
+- 検索／カテゴリ・サービス絞り込み／並び替え
+- 期限カウントダウン
 - JSONエクスポート／インポート
-- Supabase障害時はLocalStorageへ自動フォールバック
+- Supabase未設定時はLocalStorageで動作
 
-## 使い方（最短）
-1. リポジトリ直下に一式を上書き
-2. GitHub Pagesの公開URLへアクセス
-3. 「JSON読み込み」で `data.sample.json` を貼り付け → インポート（任意）
-
-## Supabase設定（任意）
-1. Supabaseプロジェクトを作成
-2. 「Project Settings > API」で `SUPABASE_URL` と `SUPABASE_ANON_KEY` を取得し、`script.js` 冒頭にコピペ
-3. SQLエディタで `supabase.sql` の内容を実行（テーブル/ストレージ/ポリシー）
-4. これで画像アップロードとウォッチ集計が有効化されます
+## Supabase設定
+1. `SUPABASE_URL` と `SUPABASE_ANON_KEY` を `script.js` に設定
+2. `supabase.sql` を実行してテーブル・ポリシー・ストレージを作成
+3. これで画像アップロード・ウォッチ集計・リアルタイム更新が有効化
 
 ## 注意
-- 画像アップロードはSupabase設定時のみ有効。未設定の場合は画像URLの入力をご利用ください
-- 期限は `YYYY-MM-DD` または `YYYY/MM/DD` で入力可（内部でハイフン形式に正規化）
-- DB障害時は自動でLocalStorageにフォールバックします
+- Supabase未設定でもLocalStorageで動作
+- DB障害時は自動でLocalStorageにフォールバック
