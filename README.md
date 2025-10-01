@@ -1,53 +1,29 @@
-# 逆オークション（メルカリ風UI + Supabase連携 + フォールバック）
+# 逆オークション（画像アップロード＋ウォッチ数集計）
 
-## 概要
-- メルカリ風のカードUI（大画像・赤字価格・♡ウォッチ）
-- Supabase（クラウドDB）に自動接続。未設定なら localStorage にフォールバック
-- 検索／カテゴリ・サービス絞り込み／並び替え／ページネーション／カウントダウン／最良オファー強調／JSON入出力
+メルカリ風UIに加え、画像アップロード（Supabase Storage）とウォッチ数のDB集計に対応しました。  
+Supabase未設定でもLocalStorageで動作し、設定すると自動でクラウド共有に切り替わります。
+
+## 機能
+- リクエスト投稿：商品名／カテゴリ／サービス種類／場所／詳細／希望金額／期限／画像URL／備考／画像アップロード（Supabase設定時）
+- 検索・カテゴリ絞り込み・サービス絞り込み・並び替え（新着／希望金額最安／期限が近い順／最良オファー）
+- メルカリ風カード：大画像・赤字価格・2行タイトル・最良オファーバッジ
+- 期限カウントダウン（日・時・分・秒）
+- ウォッチ（♡）機能：DB集計表示（Supabase設定時）／端末内表示（Local）
+- JSONエクスポート／インポート
+- Supabase障害時はLocalStorageへ自動フォールバック
 
 ## 使い方（最短）
 1. リポジトリ直下に一式を上書き
-2. GitHub Pages の公開URLを開く
-3. 「JSON読み込み」で `data.sample.json` を貼り付け → インポート
+2. GitHub Pagesの公開URLへアクセス
+3. 「JSON読み込み」で `data.sample.json` を貼り付け → インポート（任意）
 
-## Supabase を使う（任意）
-- Project を作成 → Project Settings > API から
-  - `SUPABASE_URL`（https://xxxx.supabase.co）
-  - `SUPABASE_ANON_KEY`（anon public key）
-- `script.js` の先頭に値をコピペ
-- テーブルを作成（SQL）
-  - requests
-    ```sql
-    create table if not exists public.requests (
-      id bigint primary key,
-      title text not null,
-      category text not null,
-      service text not null,
-      location text,
-      desc text not null,
-      budget numeric not null,
-      deadline date not null,
-      imageUrl text,
-      notes text,
-      status text,
-      createdAt timestamptz not null
-    );
-    ```
-  - responses
-    ```sql
-    create table if not exists public.responses (
-      id bigint generated always as identity primary key,
-      request_id bigint not null references public.requests(id) on delete cascade,
-      price numeric not null,
-      comment text not null,
-      eta text,
-      imageUrl text,
-      createdAt timestamptz not null
-    );
-    ```
-- 以上で自動的にDBを優先使用（設定が空なら自動でLocalStorageに切替）
+## Supabase設定（任意）
+1. Supabaseプロジェクトを作成
+2. 「Project Settings > API」で `SUPABASE_URL` と `SUPABASE_ANON_KEY` を取得し、`script.js` 冒頭にコピペ
+3. SQLエディタで `supabase.sql` の内容を実行（テーブル/ストレージ/ポリシー）
+4. これで画像アップロードとウォッチ集計が有効化されます
 
 ## 注意
-- 画像URLは任意。未入力時はプレースホルダ枠表示
-- 期限は `YYYY-MM-DD` または `YYYY/MM/DD` が入力可（内部でハイフンに正規化）
-- DB障害時はエラーを通知しつつ LocalStorage に自動フォールバック
+- 画像アップロードはSupabase設定時のみ有効。未設定の場合は画像URLの入力をご利用ください
+- 期限は `YYYY-MM-DD` または `YYYY/MM/DD` で入力可（内部でハイフン形式に正規化）
+- DB障害時は自動でLocalStorageにフォールバックします
