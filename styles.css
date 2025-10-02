@@ -4,22 +4,31 @@
 }
 
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif}
+html,body{
+  margin:0;padding:0;background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif
+}
 
-.header{display:flex;align-items:center;justify-content:space-between;
-  padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)}
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)
+}
 .title{margin:0;font-size:20px;font-weight:700}
 .subtitle{font-size:12px;color:var(--muted)}
 .container{max-width:1000px;margin:20px auto;padding:0 16px}
 
 /* 操作パネル */
-.controls{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;
-  background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px}
+.controls{
+  display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:12px;margin-bottom:16px
+}
 .control-group{display:flex;flex-direction:column;gap:6px}
 .label{font-size:12px;color:var(--muted)}
-.controls select,.controls input[type="text"]{padding:8px 10px;border:1px solid var(--border);
-  border-radius:6px;background:#fff;min-width:220px}
+.controls select,.controls input[type="text"]{
+  padding:8px 10px;border:1px solid var(--border);border-radius:6px;
+  background:#fff;min-width:220px
+}
 
 /* ボタン */
 .btn{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer}
@@ -34,12 +43,16 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
 @media (max-width:800px){.grid-2,.grid-3{grid-template-columns:1fr}}
 
 /* フォームセクション */
-.form-section{background:var(--card);border:1px solid var(--border);border-radius:8px;
-  padding:12px;margin-bottom:16px}
+.form-section{
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:12px;margin-bottom:16px
+}
 .form-field{display:flex;flex-direction:column;gap:8px}
 .form-field label{font-size:12px;color:var(--muted)}
-.form-field input[type="text"],.form-field input[type="file"],.form-field input[type="time"]{
-  padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff}
+.form-field input[type="text"],.form-field input[type="file"],.form-field input[type="time"],.form-field select,.form-field textarea{
+  padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff
+}
+textarea{resize:vertical}
 .muted{font-size:12px;color:var(--muted)}
 
 /* 選択ボタン群 */
@@ -49,21 +62,23 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
 
 /* モーダル */
 .modal.hidden{display:none}
-.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.35);z-index:50}
+.modal{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.35);z-index:50
+}
 .modal-content{
   width:min(820px,92vw);
-  max-height:90vh;       /* ← 高さを画面の90%に制限 */
-  overflow-y:auto;       /* ← 縦スクロールを有効化 */
+  max-height:90vh;       /* 高さを画面の90%に制限 */
+  overflow-y:auto;       /* 縦スクロールを有効化 */
   background:#fff;border-radius:12px;padding:16px;border:1px solid var(--border);
   box-shadow:0 10px 30px rgba(0,0,0,0.15)
 }
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 
 /* カレンダー（コンパクト） */
 .cal-header{display:flex;align-items:center;gap:8px}
 .cal-label{font-weight:700}
 .cal-nav{padding:4px 8px}
-
 .calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:6px 0}
 .calendar.compact div{font-size:12px}
 .calendar div{text-align:center;padding:4px;border-radius:4px;cursor:pointer}
