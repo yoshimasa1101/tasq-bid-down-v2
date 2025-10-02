@@ -43,7 +43,12 @@ html,body{
 }
 .form-field{display:flex;flex-direction:column;gap:8px}
 .form-field label{font-size:12px;color:var(--muted)}
-.form-field input[type="text"],.form-field input[type="file"],.form-field input[type="time"],.form-field select,.form-field textarea{
+.form-field input[type="text"],
+.form-field input[type="number"],
+.form-field input[type="file"],
+.form-field input[type="time"],
+.form-field select,
+.form-field textarea{
   padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff
 }
 textarea{resize:vertical}
@@ -63,7 +68,7 @@ textarea{resize:vertical}
   background:rgba(0,0,0,0.35);z-index:50
 }
 .modal-content{
-  width:min(840px,92vw);
+  width:min(880px,92vw);
   max-height:90vh;overflow-y:auto;
   background:#fff;border-radius:12px;padding:16px;border:1px solid var(--border);
   box-shadow:0 10px 30px rgba(0,0,0,0.15)
@@ -90,6 +95,10 @@ textarea{resize:vertical}
 .m-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
 .m-card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,0.12)}
 .m-thumb{width:100%;aspect-ratio:4/3;object-fit:cover;background:#f3f4f6;display:block}
+.gallery{display:flex;flex-wrap:wrap;gap:4px;padding:4px}
+.gallery img{
+  width:calc(33.33% - 4px);aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid var(--border)
+}
 .m-body{padding:10px;display:flex;flex-direction:column;gap:8px}
 .m-title{font-size:16px;font-weight:700;margin-bottom:4px}
 .m-price{font-size:14px;color:var(--primary)}
@@ -101,13 +110,9 @@ textarea{resize:vertical}
 .badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#f3f4f6;border:none}
 .badge + .badge{margin-left:4px}
 
-/* レスポンス表示（拡張余地） */
-.response-list{display:flex;flex-direction:column;gap:8px}
-.response-list.hidden{display:none}
-.response-card{border:1px solid var(--border);border-radius:8px;padding:8px;background:#fff}
-.response-card.best{border-color:var(--ok);background:#ecfdf5}
-.response-meta{font-size:12px;color:var(--muted)}
-.response-comment{font-size:13px;color:#374151;margin-top:4px}
+/* 画像プレビュー（フォーム） */
+.image-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.image-preview img{width:80px;height:80px;object-fit:cover;border:1px solid var(--border);border-radius:6px}
 
 /* ページング・フッター */
 .pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 0}
