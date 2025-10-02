@@ -1,3 +1,7 @@
+// ===== Reverse Auction MVP / script.js =====
+// Version: 2025-10-02_ja_YahooLike_MercariUI_v3
+// Single source of truth: このファイルをそのまま上書きコピペしてください。
+
 // ===== ストレージキー =====
 const STORAGE_KEY = "tasq_reverse_auction_requests_yahoo_v1";
 const WATCH_KEY   = "tasq_reverse_auction_watch_v1";
@@ -81,8 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderRegionButtons();
   render(); // 一覧
 
-  // モーダル開閉
-  qs("#open-create").addEventListener("click", () => { showModal(true); initCalendars(); renderBrands(); });
+  // モーダル開閉（開いた瞬間にカレンダー＆ブランドを必ず初期化）
+  qs("#open-create").addEventListener("click", () => showModal(true));
   qs("#cancel-create").addEventListener("click", () => showModal(false));
   qs("#submit-create").addEventListener("click", onSubmitCreate);
 
@@ -102,7 +106,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // ブランド検索補助
-  qs("#brand-search").addEventListener("input", renderBrands);
+  const brandSearch = qs("#brand-search");
+  if (brandSearch) brandSearch.addEventListener("input", renderBrands);
 
   // クイック締切
   qsa(".qdl").forEach(btn => btn.addEventListener("click", () => applyQuickDeadline(btn.dataset.dl)));
@@ -148,8 +153,10 @@ function renderItems(){
 
 function renderBrands(){
   const brandWrap = qs("#brand-buttons");
+  if (!brandWrap) return;
   const catKey = selected.cat;
-  const term = qs("#brand-search").value.trim().toLowerCase();
+  const termInput = qs("#brand-search");
+  const term = termInput ? termInput.value.trim().toLowerCase() : "";
   let brands = catKey ? (DATASETS.brands[catKey] || []) : [];
   if (term) brands = brands.filter(b => b.toLowerCase().includes(term));
   // あかさたな順（日本語ロケールでソート）
@@ -191,11 +198,11 @@ function selectToggle(btn, key){
 
 // ===== 作成送信 =====
 function onSubmitCreate(){
-  const title = qs("#title-input").value.trim();
-  const startDate = qs("#start-date").value;
-  const startTime = qs("#start-time").value;
-  const endDate = qs("#end-date").value;
-  const endTime = qs("#end-time").value;
+  const title = qs("#title-input")?.value.trim() || "";
+  const startDate = qs("#start-date")?.value || "";
+  const startTime = qs("#start-time")?.value || "";
+  const endDate = qs("#end-date")?.value || "";
+  const endTime = qs("#end-time")?.value || "";
 
   if (!selected.cat)    return alert("カテゴリを選んでください");
   if (!selected.subcat) return alert("サブカテゴリを選んでください");
@@ -223,8 +230,8 @@ function onSubmitCreate(){
     startAt, endAt,
     watchCount: 0,
     ownerId: CLIENT_ID,
-    thumb: null, // 画像は任意
-    responses: [] // ベンダー応答
+    thumb: "",
+    responses: []
   };
 
   requests.unshift(newReq);
@@ -243,22 +250,38 @@ function initCalendars(){
   updateCalLabel("start-label", startCalMonth);
   updateCalLabel("end-label", endCalMonth);
   // 描画
-  drawCalendar("start-calendar", startCalMonth, (dateStr)=>{ qs("#start-date").value = dateStr; selectCalendarDay("start-calendar", dateStr); });
-  drawCalendar("end-calendar",   endCalMonth,   (dateStr)=>{ qs("#end-date").value = dateStr; selectCalendarDay("end-calendar", dateStr); });
+  drawCalendar("start-calendar", startCalMonth, (dateStr)=>{ setStartDate(dateStr); });
+  drawCalendar("end-calendar",   endCalMonth,   (dateStr)=>{ setEndDate(dateStr); });
 
   // ナビゲーション
-  qs("#start-prev").onclick = ()=>{ startCalMonth = addMonths(startCalMonth, -1); updateCalLabel("start-label", startCalMonth); drawCalendar("start-calendar", startCalMonth, (d)=>{ qs("#start-date").value=d; selectCalendarDay("start-calendar", d); }); };
-  qs("#start-next").onclick = ()=>{ startCalMonth = addMonths(startCalMonth, 1);  updateCalLabel("start-label", startCalMonth); drawCalendar("start-calendar", startCalMonth, (d)=>{ qs("#start-date").value=d; selectCalendarDay("start-calendar", d); }); };
-  qs("#end-prev").onclick   = ()=>{ endCalMonth   = addMonths(endCalMonth, -1);   updateCalLabel("end-label", endCalMonth);   drawCalendar("end-calendar", endCalMonth, (d)=>{ qs("#end-date").value=d; selectCalendarDay("end-calendar", d); }); };
-  qs("#end-next").onclick   = ()=>{ endCalMonth   = addMonths(endCalMonth, 1);    updateCalLabel("end-label", endCalMonth);   drawCalendar("end-calendar", endCalMonth, (d)=>{ qs("#end-date").value=d; selectCalendarDay("end-calendar", d); }); };
+  qs("#start-prev").onclick = ()=>{ startCalMonth = addMonths(startCalMonth, -1); updateCalLabel("start-label", startCalMonth); drawCalendar("start-calendar", startCalMonth, setStartDate); };
+  qs("#start-next").onclick = ()=>{ startCalMonth = addMonths(startCalMonth, +1); updateCalLabel("start-label", startCalMonth); drawCalendar("start-calendar", startCalMonth, setStartDate); };
+  qs("#end-prev").onclick   = ()=>{ endCalMonth   = addMonths(endCalMonth, -1);   updateCalLabel("end-label", endCalMonth);   drawCalendar("end-calendar", endCalMonth, setEndDate); };
+  qs("#end-next").onclick   = ()=>{ endCalMonth   = addMonths(endCalMonth, +1);   updateCalLabel("end-label", endCalMonth);   drawCalendar("end-calendar", endCalMonth, setEndDate); };
+
+  // 初期選択（今日）
+  const today = toDateStr(new Date());
+  setStartDate(today);
+  setEndDate(today);
+}
+
+function setStartDate(dateStr){
+  const el = qs("#start-date"); if (el) el.value = dateStr;
+  selectCalendarDay("start-calendar", dateStr);
+}
+function setEndDate(dateStr){
+  const el = qs("#end-date"); if (el) el.value = dateStr;
+  selectCalendarDay("end-calendar", dateStr);
 }
 
 function updateCalLabel(id, date){
-  qs("#"+id).textContent = `${date.getFullYear()}年 ${date.getMonth()+1}月`;
+  const el = qs("#"+id);
+  if (el) el.textContent = `${date.getFullYear()}年 ${date.getMonth()+1}月`;
 }
 
 function drawCalendar(containerId, monthDate, onPick){
   const c = qs("#"+containerId);
+  if (!c) return;
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
   const first = new Date(year, month, 1);
@@ -281,9 +304,7 @@ function drawCalendar(containerId, monthDate, onPick){
   c.innerHTML = html;
 
   qsa(`#${containerId} .day`).forEach(el=>{
-    el.addEventListener("click", ()=>{
-      onPick(el.dataset.date);
-    });
+    el.addEventListener("click", ()=> onPick(el.dataset.date));
   });
 }
 
@@ -299,19 +320,17 @@ function addMonths(date, delta){
   return d;
 }
 
+function toDateStr(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
 function applyQuickDeadline(kind){
   const now = new Date();
-  const map = {
-    today: 0,
-    "3days": 3,
-    "1week": 7,
-    "1month": 30
-  };
-  const add = map[kind] ?? 0;
+  const addMap = { today:0, "3days":3, "1week":7, "1month":30 };
+  const add = addMap[kind] ?? 0;
   const end = new Date(now.getFullYear(), now.getMonth(), now.getDate()+add);
-  const ds = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,"0")}-${String(end.getDate()).padStart(2,"0")}`;
-  qs("#end-date").value = ds;
-  selectCalendarDay("end-calendar", ds);
+  const ds = toDateStr(end);
+  setEndDate(ds);
 }
 
 // ===== 一覧レンダリング・ソート・フィルタ =====
@@ -320,21 +339,11 @@ function filteredRequests(){
   let arr = requests.slice();
   if (term) arr = arr.filter(r => (r.title||"").toLowerCase().includes(term));
   switch(qs("#sort-select").value){
-    case "newest":
-      arr.sort((a,b)=> new Date(b.startAt) - new Date(a.startAt));
-      break;
-    case "lowest":
-      arr.sort((a,b)=> (a.desiredMin??0) - (b.desiredMin??0));
-      break;
-    case "deadline":
-      arr.sort((a,b)=> new Date(a.endAt) - new Date(b.endAt));
-      break;
-    case "bestOffer":
-      arr.sort((a,b)=> (bestOfferPrice(a)??Infinity) - (bestOfferPrice(b)??Infinity));
-      break;
-    case "popular":
-      arr.sort((a,b)=> (b.watchCount||0) - (a.watchCount||0));
-      break;
+    case "newest":   arr.sort((a,b)=> new Date(b.startAt) - new Date(a.startAt)); break;
+    case "lowest":   arr.sort((a,b)=> (a.desiredMin??0) - (b.desiredMin??0)); break;
+    case "deadline": arr.sort((a,b)=> new Date(a.endAt) - new Date(b.endAt)); break;
+    case "bestOffer":arr.sort((a,b)=> (bestOfferPrice(a)??Infinity) - (bestOfferPrice(b)??Infinity)); break;
+    case "popular":  arr.sort((a,b)=> (b.watchCount||0) - (a.watchCount||0)); break;
   }
   return arr;
 }
@@ -348,15 +357,12 @@ function render(){
   const pageArr = arr.slice(startIdx, startIdx + PAGE_SIZE);
 
   qs("#page-info").textContent = `${page} / ${totalPages}`;
-
   list.innerHTML = pageArr.map(r => cardHTML(r)).join("");
 
   // カード内のイベント束ね
   pageArr.forEach(r=>{
-    // ウォッチ
     const wbtn = qs(`#watch-${r.id}`);
     if (wbtn){ wbtn.addEventListener("click", ()=>toggleWatch(r.id)); }
-    // 折りたたみ
     const tbtn = qs(`#toggle-resp-${r.id}`);
     if (tbtn){ tbtn.addEventListener("click", ()=>{
       const el = qs(`#resp-${r.id}`);
@@ -412,13 +418,12 @@ function cardHTML(r){
 // ===== ウォッチ機能 =====
 function toggleWatch(id){
   const active = isWatching(id);
+  const r = requests.find(x=>x.id===id);
   if (active){
     watchSet.delete(id);
-    const r = requests.find(x=>x.id===id);
     if (r){ r.watchCount = Math.max(0, (r.watchCount||0)-1); }
   } else {
     watchSet.add(id);
-    const r = requests.find(x=>x.id===id);
     if (r){ r.watchCount = (r.watchCount||0)+1; }
   }
   saveWatch();
@@ -431,10 +436,7 @@ function isWatching(id){ return watchSet.has(id); }
 // ===== カウントダウン =====
 function startTick(){
   if (tickTimer) clearInterval(tickTimer);
-  tickTimer = setInterval(()=>{
-    // 再描画で残り時間更新
-    render();
-  }, 1000*30); // 30秒おき更新（負荷軽減）
+  tickTimer = setInterval(()=>{ render(); }, 1000*30); // 30秒おき更新
 }
 
 function countdownText(endAt){
@@ -558,12 +560,17 @@ function importJSON(){
 // ===== モーダル =====
 function showModal(show){
   const m = qs("#create-modal");
-  if (show){ m.classList.remove("hidden"); }
-  else { m.classList.add("hidden"); }
+  if (!m) return;
+  if (show){
+    m.classList.remove("hidden");
+    initCalendars();   // ← 開いた瞬間に必ずカレンダー初期化
+    renderBrands();    // ← ブランド候補も描画
+  } else {
+    m.classList.add("hidden");
+  }
 }
 function clearSelections(){
   selected = { cat:null, subcat:null, item:null, brand:null, price:null, cond:null, region:null };
-  // ボタンの見た目は次回開いた時に再描画
 }
 
 // ===== ショートヘルパ =====
