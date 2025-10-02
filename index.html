@@ -1,190 +1,177 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <title>逆オークション</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="./styles.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- ヘッダー：並び順・検索・追加・JSON入出力 -->
   <header class="header">
-    <div>
-      <h1 class="title">逆オークション</h1>
-      <div class="subtitle">誰でも簡単に始められるUI</div>
-    </div>
-    <div>
+    <h1 class="title">逆オークション</h1>
+    <div class="header-controls">
+      <select id="sort-select" aria-label="並び順">
+        <option value="newest">更新順</option>
+        <option value="lowest">価格が安い順</option>
+        <option value="deadline">終了が近い順</option>
+        <option value="bestOffer">最安オファー順</option>
+        <option value="popular">人気順</option>
+      </select>
+      <input type="text" id="search-input" placeholder="検索..." aria-label="検索">
       <button id="open-create" class="btn btn-primary">リクエストを追加</button>
       <button id="export-json" class="btn">JSONを出力</button>
-      <button id="import-json" class="btn">JSONを読み込む</button>
+      <button id="import-json" class="btn">JSONを読み込み</button>
+      <!-- リセットは script.js 側が挿入 -->
     </div>
   </header>
 
+  <!-- 一覧とページング -->
   <main class="container">
-    <section class="controls">
-      <div class="control-group">
-        <span class="label">並び替え</span>
-        <select id="sort-select">
-          <option value="newest">新着順</option>
-          <option value="lowest">希望価格の安い順</option>
-          <option value="deadline">期限が近い順</option>
-          <option value="bestOffer">最安オファー順</option>
-          <option value="popular">人気順（ウォッチ数）</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <span class="label">検索（商品名・ブランドなど）</span>
-        <input id="search-input" type="text" placeholder="例：iPhone、ナイキ など">
-      </div>
-    </section>
-
-    <section id="list" class="mercari-grid"></section>
+    <div id="list" class="mercari-grid"></div>
 
     <div class="pagination">
       <button id="prev-page" class="btn">前へ</button>
-      <div id="page-info" class="muted">1 / 1</div>
+      <span id="page-info">1 / 1</span>
       <button id="next-page" class="btn">次へ</button>
     </div>
-
-    <footer class="footer">TASQ JAPAN Reverse Auction MVP</footer>
   </main>
 
+  <footer class="footer">TASQ JAPAN Reverse Auction MVP</footer>
+
   <!-- 作成モーダル -->
-  <div id="create-modal" class="modal hidden">
+  <div id="create-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-content">
-      <h2>欲しいもののリクエスト</h2>
+      <h2 class="modal-title">リクエスト作成</h2>
 
-      <!-- カテゴリ選択 -->
+      <!-- タイトル -->
       <div class="form-section">
         <div class="form-field">
-          <label>カテゴリ</label>
-          <div id="cat-buttons" class="option-buttons"></div>
-        </div>
-        <div class="form-field">
-          <label>サブカテゴリ</label>
-          <div id="subcat-buttons" class="option-buttons"></div>
-        </div>
-        <div class="form-field">
-          <label>商品項目</label>
-          <div id="item-buttons" class="option-buttons"></div>
+          <label for="title-input">タイトル</label>
+          <input type="text" id="title-input" placeholder="例: Nike バックパック 黒 大きめ">
         </div>
       </div>
 
-      <!-- ブランド -->
+      <!-- カテゴリ／サブカテゴリ／項目 -->
+      <div class="form-section">
+        <div class="label">カテゴリ</div>
+        <div id="cat-buttons" class="option-buttons"></div>
+      </div>
+      <div class="form-section">
+        <div class="label">サブカテゴリ</div>
+        <div id="subcat-buttons" class="option-buttons"></div>
+      </div>
+      <div class="form-section">
+        <div class="label">商品項目</div>
+        <div id="item-buttons" class="option-buttons"></div>
+      </div>
+
+      <!-- ブランド検索・選択（あかさたな順） -->
       <div class="form-section">
         <div class="form-field">
-          <label>ブランド／メーカー</label>
-          <input id="brand-search" type="text" placeholder="補助検索（任意）">
-          <div id="brand-buttons" class="option-buttons"></div>
+          <label for="brand-search">ブランド検索</label>
+          <input type="text" id="brand-search" placeholder="ブランド名で絞り込み">
+        </div>
+        <div id="brand-buttons" class="option-buttons"></div>
+      </div>
+
+      <!-- 価格帯・状態・地域 -->
+      <div class="form-section">
+        <div class="label">価格帯</div>
+        <div id="price-buttons" class="option-buttons"></div>
+      </div>
+      <div class="form-section">
+        <div class="label">状態</div>
+        <div id="cond-buttons" class="option-buttons"></div>
+      </div>
+      <div class="form-section">
+        <div class="label">地域</div>
+        <div id="region-buttons" class="option-buttons"></div>
+      </div>
+
+      <!-- 開始／終了日時（簡易カレンダー） -->
+      <div class="form-section grid-2">
+        <div>
+          <div class="label">開始日時</div>
+          <div class="cal-header">
+            <button id="start-prev" class="btn cal-nav" aria-label="前の月">←</button>
+            <span id="start-label" class="cal-label"></span>
+            <button id="start-next" class="btn cal-nav" aria-label="次の月">→</button>
+          </div>
+          <div id="start-calendar" class="calendar compact"></div>
+          <input type="hidden" id="start-date">
+          <div class="time-row">
+            <label for="start-time" class="muted">時刻</label>
+            <input type="time" id="start-time">
+          </div>
+        </div>
+        <div>
+          <div class="label">終了日時</div>
+          <div class="cal-header">
+            <button id="end-prev" class="btn cal-nav" aria-label="前の月">←</button>
+            <span id="end-label" class="cal-label"></span>
+            <button id="end-next" class="btn cal-nav" aria-label="次の月">→</button>
+          </div>
+          <div id="end-calendar" class="calendar compact"></div>
+          <input type="hidden" id="end-date">
+          <div class="time-row">
+            <label for="end-time" class="muted">時刻</label>
+            <input type="time" id="end-time">
+          </div>
         </div>
       </div>
 
-      <!-- 価格・状態・地域 -->
-      <div class="form-section grid-3">
-        <div class="form-field">
-          <label>価格帯</label>
-          <div id="price-buttons" class="option-buttons"></div>
-        </div>
-        <div class="form-field">
-          <label>商品状態</label>
-          <div id="cond-buttons" class="option-buttons"></div>
-        </div>
-        <div class="form-field">
-          <label>地域</label>
-          <div id="region-buttons" class="option-buttons"></div>
-        </div>
-      </div>
-
-      <!-- その他の項目 -->
+      <!-- その他の項目（数量・納期・支払い・保証・追記） -->
       <div class="form-section grid-2">
         <div class="form-field">
-          <label>数量</label>
+          <label for="quantity-select">数量</label>
           <select id="quantity-select">
-            <option value="1">1個</option>
-            <option value="2">2個</option>
-            <option value="3">3個</option>
-            <option value="5">5個</option>
-            <option value="10+">10個以上</option>
+            <option value="">指定なし</option>
+            <option value="1個">1個</option>
+            <option value="2個">2個</option>
+            <option value="3個以上">3個以上</option>
           </select>
         </div>
         <div class="form-field">
-          <label>希望納期</label>
+          <label for="delivery-select">希望納期</label>
           <select id="delivery-select">
+            <option value="">指定なし</option>
             <option value="即日">即日</option>
-            <option value="3日以内">3日以内</option>
             <option value="1週間以内">1週間以内</option>
-            <option value="1か月以内">1か月以内</option>
+            <option value="1ヶ月以内">1ヶ月以内</option>
           </select>
         </div>
       </div>
 
       <div class="form-section grid-2">
         <div class="form-field">
-          <label>支払い方法</label>
+          <label for="payment-select">支払い方法</label>
           <select id="payment-select">
-            <option value="指定なし">指定なし</option>
+            <option value="">指定なし</option>
             <option value="クレジットカード">クレジットカード</option>
             <option value="銀行振込">銀行振込</option>
             <option value="代引き">代引き</option>
-            <option value="その他">その他</option>
           </select>
         </div>
         <div class="form-field">
-          <label>保証</label>
+          <label for="warranty-select">保証</label>
           <select id="warranty-select">
-            <option value="不要">不要</option>
-            <option value="保証あり希望">保証あり希望</option>
+            <option value="">指定なし</option>
+            <option value="メーカー保証あり">メーカー保証あり</option>
+            <option value="販売店保証あり">販売店保証あり</option>
+            <option value="保証なし">保証なし</option>
           </select>
         </div>
       </div>
 
       <div class="form-section">
         <div class="form-field">
-          <label>追加条件（自由入力）</label>
-          <textarea id="note-input" rows="3" placeholder="例：色はブルー希望、未使用品のみ など"></textarea>
+          <label for="note-input">追加条件</label>
+          <textarea id="note-input" rows="3" placeholder="例: 黒色希望、領収書必要など"></textarea>
         </div>
       </div>
 
-      <!-- タイトル・開始終了日時 -->
-      <div class="form-section grid-2">
-        <div class="form-field">
-          <label>商品名（短く）</label>
-          <input id="title-input" type="text" placeholder="例：iPhone 13 128GB（ブルー）">
-        </div>
-        <div class="form-field">
-          <label>開始日時</label>
-          <div class="cal-header">
-            <button class="btn cal-nav" id="start-prev">&lt;</button>
-            <div id="start-label" class="cal-label"></div>
-            <button class="btn cal-nav" id="start-next">&gt;</button>
-          </div>
-          <div id="start-calendar" class="calendar compact"></div>
-          <div class="time-row">
-            <input type="time" id="start-time" value="09:00">
-            <input type="hidden" id="start-date">
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section grid-2">
-        <div class="form-field">
-          <label>終了日時</label>
-          <div class="cal-header">
-            <button class="btn cal-nav" id="end-prev">&lt;</button>
-            <div id="end-label" class="cal-label"></div>
-            <button class="btn cal-nav" id="end-next">&gt;</button>
-          </div>
-          <div id="end-calendar" class="calendar compact"></div>
-          <div class="time-row">
-            <input type="time" id="end-time" value="23:59">
-            <input type="hidden" id="end-date">
-          </div>
-        </div>
-        <div class="form-field">
-          <label>添付ファイル（任意）</label>
-          <input id="file-input" type="file" multiple>
-        </div>
-      </div>
-
+      <!-- アクション -->
       <div class="modal-actions">
         <button id="cancel-create" class="btn">キャンセル</button>
         <button id="submit-create" class="btn btn-primary">リクエストを提出</button>
@@ -192,6 +179,7 @@
     </div>
   </div>
 
-  <script src="./script.js"></script>
+  <!-- スクリプト -->
+  <script src="script.js"></script>
 </body>
 </html>
