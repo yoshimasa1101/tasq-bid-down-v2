@@ -46,11 +46,12 @@ const DATASETS = {
       }
     }
   },
+  // ブランドはカテゴリ選択時に候補表示＋補助検索。あかさたな順でソート。
   brands: {
-    electronics: ["Apple","Sony","Panasonic","Nintendo","Canon","Nikon","CASIO","Seiko","Citizen","ASUS","Dell","HP","Lenovo","Samsung","Audio-Technica"],
-    fashion: ["Nike","Adidas","Uniqlo","GU","ZARA","Supreme","The North Face","Levi's","Rolex","OMEGA","シャネル","ルイヴィトン"],
-    hobby: ["Bandai","Kotobukiya","Good Smile","SEGA","Takara Tomy"],
-    home: ["IKEA","Nitori","T-fal","Iris Ohyama","Yamazen"]
+    electronics: ["Apple","Audio-Technica","ASUS","Canon","CASIO","Citizen","Dell","HP","Lenovo","Nikon","Nintendo","Panasonic","Samsung","Seiko","Sony"],
+    fashion: ["Adidas","GU","Levi's","Nike","OMEGA","Rolex","Supreme","The North Face","Uniqlo","ZARA","シャネル","ルイヴィトン"],
+    hobby: ["Bandai","Good Smile","Kotobukiya","SEGA","Takara Tomy"],
+    home: ["IKEA","Iris Ohyama","Nitori","T-fal","Yamazen"]
   },
   regions: ["全国","北海道","青森","岩手","宮城","秋田","山形","福島","茨城","栃木","群馬","埼玉","千葉","東京","神奈川","新潟","富山","石川","福井","山梨","長野","岐阜","静岡","愛知","三重","滋賀","京都","大阪","兵庫","奈良","和歌山","鳥取","島根","岡山","広島","山口","徳島","香川","愛媛","高知","福岡","佐賀","長崎","熊本","大分","宮崎","鹿児島","沖縄"],
   priceRanges: [
@@ -69,30 +70,43 @@ let page = 1;
 const PAGE_SIZE = 12;
 let tickTimer = null;
 
-// ===== 選択状態 =====
+// ===== 選択状態（モーダル）=====
 let selected = { cat:null, subcat:null, item:null, brand:null, price:null, cond:null, region:null };
 
 // ===== DOM Ready =====
 document.addEventListener("DOMContentLoaded", () => {
   renderCategoryButtons();
+  renderPriceButtons();
+  renderCondButtons();
+  renderRegionButtons();
+  render(); // 一覧
 
-  qs("#open-create").addEventListener("click", () => showModal(true));
+  // モーダル開閉
+  qs("#open-create").addEventListener("click", () => { showModal(true); initCalendars(); renderBrands(); });
   qs("#cancel-create").addEventListener("click", () => showModal(false));
   qs("#submit-create").addEventListener("click", onSubmitCreate);
 
-  qs("#sort-select").addEventListener("change", () => render());
-  qs("#search-input").addEventListener("input", () => render());
+  // 並び替え・検索
+  qs("#sort-select").addEventListener("change", render);
+  qs("#search-input").addEventListener("input", render);
 
+  // JSON入出力
   qs("#export-json").addEventListener("click", exportJSON);
   qs("#import-json").addEventListener("click", importJSON);
 
+  // ページング
   qs("#prev-page").addEventListener("click", () => { if(page>1){ page--; render(); } });
   qs("#next-page").addEventListener("click", () => {
     const totalPages = Math.max(1, Math.ceil(filteredRequests().length / PAGE_SIZE));
     if(page<totalPages){ page++; render(); }
   });
 
-  render();
+  // ブランド検索補助
+  qs("#brand-search").addEventListener("input", renderBrands);
+
+  // クイック締切
+  qsa(".qdl").forEach(btn => btn.addEventListener("click", () => applyQuickDeadline(btn.dataset.dl)));
+
   startTick();
 });
 
@@ -105,6 +119,8 @@ function renderCategoryButtons(){
   qsa("#cat-buttons .btn").forEach(btn => btn.addEventListener("click", () => {
     selectToggle(btn, "cat");
     renderSubcats();
+    renderItems(); // 初期化
+    renderBrands();
   }));
 }
 
@@ -130,7 +146,40 @@ function renderItems(){
   qsa("#item-buttons .btn").forEach(btn => btn.addEventListener("click", () => selectToggle(btn, "item")));
 }
 
+function renderBrands(){
+  const brandWrap = qs("#brand-buttons");
+  const catKey = selected.cat;
+  const term = qs("#brand-search").value.trim().toLowerCase();
+  let brands = catKey ? (DATASETS.brands[catKey] || []) : [];
+  if (term) brands = brands.filter(b => b.toLowerCase().includes(term));
+  // あかさたな順（日本語ロケールでソート）
+  brands.sort((a,b)=>a.localeCompare(b,"ja"));
+  brandWrap.innerHTML = brands.length
+    ? brands.map(b => `<button class="btn" data-val="${b}">${b}</button>`).join("")
+    : `<div class="muted">カテゴリ選択で候補表示／補助検索も可</div>`;
+  qsa("#brand-buttons .btn").forEach(btn => btn.addEventListener("click", () => selectToggle(btn, "brand")));
+}
+
+function renderPriceButtons(){
+  const priceWrap = qs("#price-buttons");
+  priceWrap.innerHTML = DATASETS.priceRanges.map(p => `<button class="btn" data-val="${p.id}">${p.label}</button>`).join("");
+  qsa("#price-buttons .btn").forEach(btn => btn.addEventListener("click", () => selectToggle(btn, "price")));
+}
+
+function renderCondButtons(){
+  const condWrap = qs("#cond-buttons");
+  condWrap.innerHTML = DATASETS.conditions.map(c => `<button class="btn" data-val="${c}">${c}</button>`).join("");
+  qsa("#cond-buttons .btn").forEach(btn => btn.addEventListener("click", () => selectToggle(btn, "cond")));
+}
+
+function renderRegionButtons(){
+  const regionWrap = qs("#region-buttons");
+  regionWrap.innerHTML = DATASETS.regions.map(r => `<button class="btn" data-val="${r}">${r}</button>`).join("");
+  qsa("#region-buttons .btn").forEach(btn => btn.addEventListener("click", () => selectToggle(btn, "region")));
+}
+
 function selectToggle(btn, key){
+  // 同じエリアのボタンの選択状態を排他に
   qsa(`#${btn.parentElement.id} .btn`).forEach(b => b.classList.remove("btn-primary"));
   if (selected[key] === btn.dataset.val) {
     selected[key] = null;
@@ -162,4 +211,361 @@ function onSubmitCreate(){
   const priceInfo = DATASETS.priceRanges.find(p => p.id===selected.price) || {min:null,max:null};
   const newReq = {
     id: crypto.randomUUID?.() || (Date.now()+"-"+Math.random()),
-    title
+    title: title || `${selected.item}（${selected.subcat}）`,
+    category: selected.cat,
+    subcategory: selected.subcat,
+    item: selected.item,
+    brand: selected.brand || null,
+    condition: selected.cond || null,
+    region: selected.region || "全国",
+    desiredMin: priceInfo.min,
+    desiredMax: priceInfo.max,
+    startAt, endAt,
+    watchCount: 0,
+    ownerId: CLIENT_ID,
+    thumb: null, // 画像は任意
+    responses: [] // ベンダー応答
+  };
+
+  requests.unshift(newReq);
+  saveRequests();
+  showModal(false);
+  clearSelections();
+  render();
+}
+
+// ===== カレンダー =====
+let startCalMonth = new Date();
+let endCalMonth = new Date();
+
+function initCalendars(){
+  // 初期ラベル
+  updateCalLabel("start-label", startCalMonth);
+  updateCalLabel("end-label", endCalMonth);
+  // 描画
+  drawCalendar("start-calendar", startCalMonth, (dateStr)=>{ qs("#start-date").value = dateStr; selectCalendarDay("start-calendar", dateStr); });
+  drawCalendar("end-calendar",   endCalMonth,   (dateStr)=>{ qs("#end-date").value = dateStr; selectCalendarDay("end-calendar", dateStr); });
+
+  // ナビゲーション
+  qs("#start-prev").onclick = ()=>{ startCalMonth = addMonths(startCalMonth, -1); updateCalLabel("start-label", startCalMonth); drawCalendar("start-calendar", startCalMonth, (d)=>{ qs("#start-date").value=d; selectCalendarDay("start-calendar", d); }); };
+  qs("#start-next").onclick = ()=>{ startCalMonth = addMonths(startCalMonth, 1);  updateCalLabel("start-label", startCalMonth); drawCalendar("start-calendar", startCalMonth, (d)=>{ qs("#start-date").value=d; selectCalendarDay("start-calendar", d); }); };
+  qs("#end-prev").onclick   = ()=>{ endCalMonth   = addMonths(endCalMonth, -1);   updateCalLabel("end-label", endCalMonth);   drawCalendar("end-calendar", endCalMonth, (d)=>{ qs("#end-date").value=d; selectCalendarDay("end-calendar", d); }); };
+  qs("#end-next").onclick   = ()=>{ endCalMonth   = addMonths(endCalMonth, 1);    updateCalLabel("end-label", endCalMonth);   drawCalendar("end-calendar", endCalMonth, (d)=>{ qs("#end-date").value=d; selectCalendarDay("end-calendar", d); }); };
+}
+
+function updateCalLabel(id, date){
+  qs("#"+id).textContent = `${date.getFullYear()}年 ${date.getMonth()+1}月`;
+}
+
+function drawCalendar(containerId, monthDate, onPick){
+  const c = qs("#"+containerId);
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const first = new Date(year, month, 1);
+  const startDay = first.getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  const headers = ["日","月","火","水","木","金","土"];
+  let html = headers.map(h=>`<div class="header">${h}</div>`).join("");
+
+  for(let i=0;i<startDay;i++){ html += `<div></div>`; }
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const weekday = (startDay + d - 1) % 7;
+    const cls = ["day"];
+    if (weekday===0) cls.push("sunday");
+    if (weekday===6) cls.push("saturday");
+    html += `<div class="${cls.join(" ")}" data-date="${dateStr}">${d}</div>`;
+  }
+  c.innerHTML = html;
+
+  qsa(`#${containerId} .day`).forEach(el=>{
+    el.addEventListener("click", ()=>{
+      onPick(el.dataset.date);
+    });
+  });
+}
+
+function selectCalendarDay(containerId, dateStr){
+  qsa(`#${containerId} .day`).forEach(el=>{
+    el.classList.toggle("selected", el.dataset.date===dateStr);
+  });
+}
+
+function addMonths(date, delta){
+  const d = new Date(date);
+  d.setMonth(d.getMonth()+delta);
+  return d;
+}
+
+function applyQuickDeadline(kind){
+  const now = new Date();
+  const map = {
+    today: 0,
+    "3days": 3,
+    "1week": 7,
+    "1month": 30
+  };
+  const add = map[kind] ?? 0;
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate()+add);
+  const ds = `${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,"0")}-${String(end.getDate()).padStart(2,"0")}`;
+  qs("#end-date").value = ds;
+  selectCalendarDay("end-calendar", ds);
+}
+
+// ===== 一覧レンダリング・ソート・フィルタ =====
+function filteredRequests(){
+  const term = qs("#search-input").value.trim().toLowerCase();
+  let arr = requests.slice();
+  if (term) arr = arr.filter(r => (r.title||"").toLowerCase().includes(term));
+  switch(qs("#sort-select").value){
+    case "newest":
+      arr.sort((a,b)=> new Date(b.startAt) - new Date(a.startAt));
+      break;
+    case "lowest":
+      arr.sort((a,b)=> (a.desiredMin??0) - (b.desiredMin??0));
+      break;
+    case "deadline":
+      arr.sort((a,b)=> new Date(a.endAt) - new Date(b.endAt));
+      break;
+    case "bestOffer":
+      arr.sort((a,b)=> (bestOfferPrice(a)??Infinity) - (bestOfferPrice(b)??Infinity));
+      break;
+    case "popular":
+      arr.sort((a,b)=> (b.watchCount||0) - (a.watchCount||0));
+      break;
+  }
+  return arr;
+}
+
+function render(){
+  const list = qs("#list");
+  const arr = filteredRequests();
+  const totalPages = Math.max(1, Math.ceil(arr.length / PAGE_SIZE));
+  page = Math.min(page, totalPages);
+  const startIdx = (page-1)*PAGE_SIZE;
+  const pageArr = arr.slice(startIdx, startIdx + PAGE_SIZE);
+
+  qs("#page-info").textContent = `${page} / ${totalPages}`;
+
+  list.innerHTML = pageArr.map(r => cardHTML(r)).join("");
+
+  // カード内のイベント束ね
+  pageArr.forEach(r=>{
+    // ウォッチ
+    const wbtn = qs(`#watch-${r.id}`);
+    if (wbtn){ wbtn.addEventListener("click", ()=>toggleWatch(r.id)); }
+    // 折りたたみ
+    const tbtn = qs(`#toggle-resp-${r.id}`);
+    if (tbtn){ tbtn.addEventListener("click", ()=>{
+      const el = qs(`#resp-${r.id}`);
+      el.classList.toggle("hidden");
+      tbtn.textContent = el.classList.contains("hidden") ? "レスポンスを表示" : "レスポンスを隠す";
+    }); }
+  });
+}
+
+function cardHTML(r){
+  const desired = priceLabel(r.desiredMin, r.desiredMax);
+  const countdown = countdownText(r.endAt);
+  const best = bestOfferPrice(r);
+  const badges = [
+    r.brand ? `ブランド: ${r.brand}` : null,
+    r.condition ? `状態: ${r.condition}` : null,
+    r.region ? `地域: ${r.region}` : null,
+    desired ? `希望価格: ${desired}` : null
+  ].filter(Boolean);
+  const watchActive = isWatching(r.id);
+  const thumb = r.thumb || "";
+  const respList = r.responses || [];
+  const bestId = bestOfferId(r);
+
+  return `
+  <article class="m-card">
+    <img class="m-thumb" alt="" src="${thumb}" />
+    <div class="m-body">
+      <div class="m-title">${escapeHTML(r.title || r.item || "未設定")}</div>
+      <div class="m-badges">${badges.map(b=>`<span class="badge">${escapeHTML(b)}</span>`).join("")}</div>
+      <div class="m-countdown ${countdown.cls}">${countdown.text}</div>
+      <div class="m-price">${best!=null ? `最安オファー: ${formatJPY(best)}` : "オファー未着"}</div>
+      <div class="m-badges">
+        <button id="watch-${r.id}" class="btn ${watchActive?"btn-primary":""}">
+          ウォッチ${watchActive?"中":""}（${r.watchCount||0}）
+        </button>
+        <button id="toggle-resp-${r.id}" class="btn btn-secondary">レスポンスを表示</button>
+      </div>
+      <div id="resp-${r.id}" class="response-list hidden">
+        ${respList.length ? respList.map(x=>`
+          <div class="response-card ${x.id===bestId?"best":""}">
+            <div class="response-meta">
+              ベンダー: ${escapeHTML(x.vendor||"匿名")} ／ オファー: ${formatJPY(x.offerPrice)} ／ 納期: ${escapeHTML(x.leadTime||"—")}
+            </div>
+            ${x.comment?`<div class="response-comment">${escapeHTML(x.comment)}</div>`:""}
+          </div>
+        `).join("") : `<div class="muted">まだレスポンスはありません</div>`}
+      </div>
+    </div>
+  </article>`;
+}
+
+// ===== ウォッチ機能 =====
+function toggleWatch(id){
+  const active = isWatching(id);
+  if (active){
+    watchSet.delete(id);
+    const r = requests.find(x=>x.id===id);
+    if (r){ r.watchCount = Math.max(0, (r.watchCount||0)-1); }
+  } else {
+    watchSet.add(id);
+    const r = requests.find(x=>x.id===id);
+    if (r){ r.watchCount = (r.watchCount||0)+1; }
+  }
+  saveWatch();
+  saveRequests();
+  render();
+}
+
+function isWatching(id){ return watchSet.has(id); }
+
+// ===== カウントダウン =====
+function startTick(){
+  if (tickTimer) clearInterval(tickTimer);
+  tickTimer = setInterval(()=>{
+    // 再描画で残り時間更新
+    render();
+  }, 1000*30); // 30秒おき更新（負荷軽減）
+}
+
+function countdownText(endAt){
+  const now = new Date();
+  const end = new Date(endAt);
+  const diff = end - now;
+  if (diff <= 0) return {text:"期限切れ", cls:"expired"};
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hours = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+  const mins = Math.floor((diff % (1000*60*60)) / (1000*60));
+  const urgent = diff < (1000*60*60*24); // 24h未満
+  return {text:`残り ${days}日 ${hours}時間 ${mins}分`, cls: urgent ? "urgent" : ""};
+}
+
+// ===== データユーティリティ =====
+function bestOfferPrice(r){
+  if (!r.responses || !r.responses.length) return null;
+  return Math.min(...r.responses.map(x=>x.offerPrice).filter(n=>typeof n==="number"));
+}
+function bestOfferId(r){
+  const best = bestOfferPrice(r);
+  if (best==null) return null;
+  const hit = r.responses.find(x=>x.offerPrice===best);
+  return hit ? hit.id : null;
+}
+function priceLabel(min,max){
+  if (min==null && max==null) return "";
+  if (min!=null && max!=null) return `${formatJPY(min)}〜${formatJPY(max)}`;
+  if (min!=null) return `${formatJPY(min)}以上`;
+  return `${formatJPY(max)}以下`;
+}
+function formatJPY(n){
+  if (n==null) return "—";
+  return `¥${n.toLocaleString("ja-JP")}`;
+}
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ===== ストレージ =====
+function loadRequests(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return seedRequests(); // 初期データ
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr)?arr:seedRequests();
+  }catch(e){ return seedRequests(); }
+}
+function saveRequests(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(requests));
+}
+function seedRequests(){
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate()+3, 23, 59);
+  return [
+    {
+      id: "seed-1",
+      title: "iPhone 13 128GB（ブルー）",
+      category: "electronics",
+      subcategory: "スマホ・携帯",
+      item: "iPhone",
+      brand: "Apple",
+      condition: "中古（良品）",
+      region: "北海道",
+      desiredMin: 20000, desiredMax: 45000,
+      startAt: now.toISOString(),
+      endAt: end.toISOString(),
+      watchCount: 3,
+      ownerId: CLIENT_ID,
+      thumb: "",
+      responses: [
+        { id:"resp-1", vendor:"A社", offerPrice: 39800, leadTime:"3日", comment:"バッテリー85%、外装Aランク" },
+        { id:"resp-2", vendor:"B社", offerPrice: 42000, leadTime:"当日発送", comment:"SIMフリー、動作確認済み" }
+      ]
+    }
+  ];
+}
+function loadWatch(){
+  try{
+    const raw = localStorage.getItem(WATCH_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(arr)?arr:[]);
+  }catch(e){ return new Set(); }
+}
+function saveWatch(){
+  localStorage.setItem(WATCH_KEY, JSON.stringify([...watchSet]));
+}
+
+// ===== JSON入出力 =====
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(requests, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "reverse_auction_requests.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importJSON(){
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = async () => {
+    const file = input.files[0];
+    if (!file) return;
+    const text = await file.text();
+    try{
+      const arr = JSON.parse(text);
+      if (!Array.isArray(arr)) throw new Error("配列ではありません");
+      requests = arr;
+      saveRequests();
+      render();
+      alert("JSONの読み込みが完了しました");
+    }catch(e){
+      alert("JSONの形式が不正です");
+    }
+  };
+  input.click();
+}
+
+// ===== モーダル =====
+function showModal(show){
+  const m = qs("#create-modal");
+  if (show){ m.classList.remove("hidden"); }
+  else { m.classList.add("hidden"); }
+}
+function clearSelections(){
+  selected = { cat:null, subcat:null, item:null, brand:null, price:null, cond:null, region:null };
+  // ボタンの見た目は次回開いた時に再描画
+}
+
+// ===== ショートヘルパ =====
+function qs(sel){ return document.querySelector(sel); }
+function qsa(sel){ return [...document.querySelectorAll(sel)]; }
