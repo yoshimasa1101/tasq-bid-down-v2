@@ -53,7 +53,6 @@
     <div class="modal-content">
       <h2 style="margin:0 0 10px;">欲しいもののリクエスト</h2>
 
-      <!-- カテゴリ選択 -->
       <div class="form-section">
         <div class="form-field">
           <label>カテゴリ</label>
@@ -69,16 +68,14 @@
         </div>
       </div>
 
-      <!-- ブランド・メーカー -->
       <div class="form-section">
         <div class="form-field">
           <label>ブランド／メーカー</label>
-          <input id="brand-search" type="text" placeholder="補助検索（入力は任意）">
+          <input id="brand-search" type="text" placeholder="補助検索（任意）">
           <div id="brand-buttons" class="option-buttons" style="margin-top:8px;"></div>
         </div>
       </div>
 
-      <!-- 価格帯・状態・地域 -->
       <div class="form-section grid-3">
         <div class="form-field">
           <label>価格帯</label>
@@ -94,7 +91,6 @@
         </div>
       </div>
 
-      <!-- タイトル＋開始・終了日時 -->
       <div class="form-section grid-2">
         <div class="form-field">
           <label>商品名（短く）</label>
@@ -108,7 +104,7 @@
             <div id="start-label" class="cal-label"></div>
             <button class="btn cal-nav" id="start-next">&gt;</button>
           </div>
-          <div id="start-calendar" class="calendar"></div>
+          <div id="start-calendar" class="calendar compact"></div>
           <div class="time-row">
             <input type="time" id="start-time" value="09:00">
             <input type="hidden" id="start-date">
@@ -124,7 +120,7 @@
             <div id="end-label" class="cal-label"></div>
             <button class="btn cal-nav" id="end-next">&gt;</button>
           </div>
-          <div id="end-calendar" class="calendar"></div>
+          <div id="end-calendar" class="calendar compact"></div>
           <div class="time-row">
             <input type="time" id="end-time" value="23:59">
             <input type="hidden" id="end-date">
@@ -137,7 +133,6 @@
           </div>
         </div>
 
-        <!-- 添付ファイル -->
         <div class="form-field">
           <label>添付ファイル（任意）</label>
           <input id="file-input" type="file" multiple>
