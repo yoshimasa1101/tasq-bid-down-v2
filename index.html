@@ -2,15 +2,21 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>逆オークション</title>
+  <title>逆オークション / 通常オークション</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- ヘッダー：並び順・検索・届け先・追加・JSON入出力 -->
+  <!-- ヘッダー -->
   <header class="header">
-    <h1 class="title">逆オークション</h1>
+    <h1 class="title">オークションシステム</h1>
     <div class="header-controls">
+      <!-- モード切替 -->
+      <select id="mode-select" aria-label="モード切替">
+        <option value="reverse">逆オークション</option>
+        <option value="normal">通常オークション</option>
+      </select>
+      <!-- 並び替え -->
       <select id="sort-select" aria-label="並び順">
         <option value="newest">更新順</option>
         <option value="lowest">価格が安い順</option>
@@ -18,10 +24,11 @@
         <option value="bestOffer">最安オファー順</option>
         <option value="popular">人気順</option>
       </select>
+      <!-- 検索 -->
       <input type="text" id="search-input" placeholder="検索..." aria-label="検索">
-      <!-- 届け先（ゾーン） -->
+      <!-- 届け先 -->
       <select id="dest-select" aria-label="届け先">
-        <option value="全国" selected>届け先: 全国（推定）</option>
+        <option value="全国" selected>届け先: 全国</option>
         <option value="北海道">北海道</option>
         <option value="東北">東北</option>
         <option value="関東">関東</option>
@@ -32,14 +39,14 @@
         <option value="九州">九州</option>
         <option value="沖縄・離島">沖縄・離島</option>
       </select>
-      <button id="open-create" class="btn btn-primary">リクエストを追加</button>
-      <button id="export-json" class="btn">JSONを出力</button>
-      <button id="import-json" class="btn">JSONを読み込み</button>
-      <!-- リセットは script.js が動的挿入します -->
+      <!-- ボタン群 -->
+      <button id="open-create" class="btn btn-primary">新規投稿</button>
+      <button id="export-json" class="btn">JSON出力</button>
+      <button id="import-json" class="btn">JSON読込</button>
     </div>
   </header>
 
-  <!-- 一覧とページング -->
+  <!-- 一覧 -->
   <main class="container">
     <div id="list" class="mercari-grid"></div>
     <div class="pagination">
@@ -49,12 +56,12 @@
     </div>
   </main>
 
-  <footer class="footer">TASQ JAPAN Reverse Auction MVP</footer>
+  <footer class="footer">TASQ JAPAN Auction MVP</footer>
 
-  <!-- 作成モーダル（依頼側） -->
+  <!-- 投稿モーダル（逆/通常共通） -->
   <div id="create-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-content">
-      <h2 class="modal-title">リクエスト作成</h2>
+      <h2 class="modal-title">新規投稿</h2>
 
       <!-- タイトル -->
       <div class="form-section">
@@ -64,16 +71,16 @@
         </div>
       </div>
 
-      <!-- 画像アップロード（最大6枚） -->
+      <!-- 画像 -->
       <div class="form-section">
         <div class="form-field">
-          <label for="req-images">参考画像（最大6枚）</label>
+          <label for="req-images">画像（最大6枚）</label>
           <input type="file" id="req-images" accept="image/*" multiple>
           <div id="req-image-preview" class="image-preview"></div>
         </div>
       </div>
 
-      <!-- カテゴリ／サブカテゴリ／項目 -->
+      <!-- カテゴリ -->
       <div class="form-section">
         <div class="label">カテゴリ</div>
         <div id="cat-buttons" class="option-buttons"></div>
@@ -87,7 +94,7 @@
         <div id="item-buttons" class="option-buttons"></div>
       </div>
 
-      <!-- ブランド検索・選択（あかさたな順） -->
+      <!-- ブランド -->
       <div class="form-section">
         <div class="form-field">
           <label for="brand-search">ブランド検索</label>
@@ -96,11 +103,13 @@
         <div id="brand-buttons" class="option-buttons"></div>
       </div>
 
-      <!-- 価格帯・状態・地域 -->
+      <!-- 希望価格（上限ボタン式） -->
       <div class="form-section">
-        <div class="label">価格帯</div>
+        <div class="label">希望価格（上限）</div>
         <div id="price-buttons" class="option-buttons"></div>
       </div>
+
+      <!-- 状態・地域 -->
       <div class="form-section">
         <div class="label">状態</div>
         <div id="cond-buttons" class="option-buttons"></div>
@@ -110,175 +119,36 @@
         <div id="region-buttons" class="option-buttons"></div>
       </div>
 
-      <!-- 開始／終了日時（簡易カレンダー） -->
+      <!-- 開始/終了日時 -->
       <div class="form-section grid-2">
         <div>
           <div class="label">開始日時</div>
-          <div class="cal-header">
-            <button id="start-prev" class="btn cal-nav" aria-label="前の月">←</button>
-            <span id="start-label" class="cal-label"></span>
-            <button id="start-next" class="btn cal-nav" aria-label="次の月">→</button>
-          </div>
-          <div id="start-calendar" class="calendar compact"></div>
-          <input type="hidden" id="start-date">
-          <div class="time-row">
-            <label for="start-time" class="muted">時刻</label>
-            <input type="time" id="start-time">
-          </div>
+          <input type="date" id="start-date">
+          <input type="time" id="start-time">
         </div>
         <div>
           <div class="label">終了日時</div>
-          <div class="cal-header">
-            <button id="end-prev" class="btn cal-nav" aria-label="前の月">←</button>
-            <span id="end-label" class="cal-label"></span>
-            <button id="end-next" class="btn cal-nav" aria-label="次の月">→</button>
-          </div>
-          <div id="end-calendar" class="calendar compact"></div>
-          <input type="hidden" id="end-date">
-          <div class="time-row">
-            <label for="end-time" class="muted">時刻</label>
-            <input type="time" id="end-time">
-          </div>
+          <input type="date" id="end-date">
+          <input type="time" id="end-time">
         </div>
       </div>
 
-      <!-- その他の項目（数量・納期・支払い・保証・追記） -->
-      <div class="form-section grid-2">
-        <div class="form-field">
-          <label for="quantity-select">数量</label>
-          <select id="quantity-select">
-            <option value="">指定なし</option>
-            <option value="1個">1個</option>
-            <option value="2個">2個</option>
-            <option value="3個以上">3個以上</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label for="delivery-select">希望納期</label>
-          <select id="delivery-select">
-            <option value="">指定なし</option>
-            <option value="即日">即日</option>
-            <option value="1週間以内">1週間以内</option>
-            <option value="1ヶ月以内">1ヶ月以内</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-section grid-2">
-        <div class="form-field">
-          <label for="payment-select">支払い方法</label>
-          <select id="payment-select">
-            <option value="">指定なし</option>
-            <option value="クレジットカード">クレジットカード</option>
-            <option value="銀行振込">銀行振込</option>
-            <option value="代引き">代引き</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label for="warranty-select">保証</label>
-          <select id="warranty-select">
-            <option value="">指定なし</option>
-            <option value="メーカー保証あり">メーカー保証あり</option>
-            <option value="販売店保証あり">販売店保証あり</option>
-            <option value="保証なし">保証なし</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- 送料ポリシー（提供側を想定した依頼時の希望基準） -->
-      <div class="form-section">
-        <div class="label">送料ポリシー（提供側が決める前提での推定用）</div>
-        <div class="grid-2">
-          <div class="form-field">
-            <label for="ship-policy-type">計算方式</label>
-            <select id="ship-policy-type">
-              <option value="flat">全国一律（固定）</option>
-              <option value="zone">ゾーン別（地域ごと）</option>
-              <option value="free-threshold">無料閾値あり</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="ship-base-fee">基本送料（円）</label>
-            <input type="number" id="ship-base-fee" placeholder="例: 800">
-          </div>
-        </div>
-        <div class="grid-3">
-          <div class="form-field"><label>北海道</label><input type="number" id="ship-zone-hokkaido" placeholder="例: 1200"></div>
-          <div class="form-field"><label>東北</label><input type="number" id="ship-zone-tohoku" placeholder="例: 900"></div>
-          <div class="form-field"><label>関東</label><input type="number" id="ship-zone-kanto" placeholder="例: 800"></div>
-          <div class="form-field"><label>中部</label><input type="number" id="ship-zone-chubu" placeholder="例: 900"></div>
-          <div class="form-field"><label>近畿</label><input type="number" id="ship-zone-kinki" placeholder="例: 900"></div>
-          <div class="form-field"><label>中国</label><input type="number" id="ship-zone-chugoku" placeholder="例: 1000"></div>
-          <div class="form-field"><label>四国</label><input type="number" id="ship-zone-shikoku" placeholder="例: 1000"></div>
-          <div class="form-field"><label>九州</label><input type="number" id="ship-zone-kyushu" placeholder="例: 1100"></div>
-          <div class="form-field"><label>沖縄・離島</label><input type="number" id="ship-zone-okinawa" placeholder="例: 1800"></div>
-        </div>
-        <div class="grid-2">
-          <div class="form-field">
-            <label for="ship-free-threshold">無料閾値（商品合計）</label>
-            <input type="number" id="ship-free-threshold" placeholder="例: 10000">
-          </div>
-          <div class="form-field">
-            <label for="ship-fee-if-below">閾値未満の送料</label>
-            <input type="number" id="ship-fee-if-below" placeholder="例: 800">
-          </div>
-        </div>
-      </div>
-
+      <!-- その他 -->
       <div class="form-section">
         <div class="form-field">
           <label for="note-input">追加条件</label>
-          <textarea id="note-input" rows="3" placeholder="例: 黒色希望、領収書必要など"></textarea>
+          <textarea id="note-input" rows="3"></textarea>
         </div>
       </div>
 
       <!-- アクション -->
       <div class="modal-actions">
         <button id="cancel-create" class="btn">キャンセル</button>
-        <button id="submit-create" class="btn btn-primary">リクエストを提出</button>
+        <button id="submit-create" class="btn btn-primary">投稿</button>
       </div>
     </div>
   </div>
 
-  <!-- オファーモーダル（提供側） -->
-  <div id="offer-modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-content">
-      <h2 class="modal-title">オファー提出</h2>
-
-      <div class="form-section grid-2">
-        <div class="form-field">
-          <label for="offer-price">オファー価格（商品価格・円）</label>
-          <input type="number" id="offer-price" placeholder="例: 9800">
-        </div>
-        <div class="form-field">
-          <label for="offer-ship-fee">送料（円）</label>
-          <input type="number" id="offer-ship-fee" placeholder="例: 800">
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-field">
-          <label for="offer-comment">コメント</label>
-          <textarea id="offer-comment" rows="3" placeholder="例: 新品・店舗保証1年、即日発送"></textarea>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <div class="form-field">
-          <label for="offer-images">商品画像（最大6枚）</label>
-          <input type="file" id="offer-images" accept="image/*" multiple>
-          <div id="offer-image-preview" class="image-preview"></div>
-        </div>
-      </div>
-
-      <div class="modal-actions">
-        <button id="offer-cancel" class="btn">キャンセル</button>
-        <button id="offer-submit" class="btn btn-primary">オファーを送信</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- スクリプト -->
   <script src="script.js"></script>
 </body>
 </html>
