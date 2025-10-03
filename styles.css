@@ -3,124 +3,28 @@
   --primary:#2563eb; --primary-100:#dbeafe; --accent:#f59e0b; --danger:#dc2626; --ok:#34d399;
 }
 
-/* ベース */
 *{box-sizing:border-box}
-html,body{
-  margin:0;padding:0;background:var(--bg);color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif
-}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans","Yu Gothic UI","Hiragino Kaku Gothic ProN","Meiryo",sans-serif}
 
-/* ヘッダー */
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)
-}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff;border-bottom:1px solid var(--border)}
 .title{margin:0;font-size:20px;font-weight:700}
 .header-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.header-controls select,.header-controls input{
-  padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff
-}
+.header-controls select,.header-controls input{padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff}
 
-/* コンテナ */
 .container{max-width:1000px;margin:20px auto;padding:0 16px}
 
-/* ボタン */
 .btn{padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer}
 .btn:hover{background:#f9fafb}
 .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
 .btn-primary:hover{background:#1e40af}
-.btn-secondary{background:var(--primary-100);color:#1f2937;border-color:#bfdbfe}
 
-/* グリッド */
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media (max-width:800px){.grid-2,.grid-3{grid-template-columns:1fr}}
-
-/* フォームセクション */
-.form-section{
-  background:var(--card);border:1px solid var(--border);border-radius:8px;
-  padding:12px;margin-bottom:16px
-}
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px}
 .form-field{display:flex;flex-direction:column;gap:8px}
 .form-field label{font-size:12px;color:var(--muted)}
-.form-field input[type="text"],
-.form-field input[type="number"],
-.form-field input[type="file"],
-.form-field input[type="time"],
-.form-field select,
-.form-field textarea{
-  padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff
-}
-textarea{resize:vertical}
-.label{font-size:12px;color:var(--muted);margin-bottom:6px}
-.muted{font-size:12px;color:var(--muted)}
-.time-row{display:flex;gap:8px;align-items:center}
+.form-field input,.form-field select,.form-field textarea{padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:#fff}
 
-/* 選択ボタン群 */
 .option-buttons{display:flex;flex-wrap:wrap;gap:8px}
-.option-buttons .btn{padding:6px 10px;border:1px solid var(--border);background:#fff;transition:all 0.2s}
-.option-buttons .btn.btn-primary{background:var(--primary);color:#fff;box-shadow:0 0 0 2px var(--primary-100)}
+.option-buttons .btn{padding:6px 10px;border:1px solid var(--border);background:#fff}
+.option-buttons .btn.btn-primary{background:var(--primary);color:#fff}
 
-/* モーダル */
-.modal.hidden{display:none}
-.modal{
-  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.35);z-index:50
-}
-.modal-content{
-  width:min(880px,92vw);
-  max-height:90vh;overflow-y:auto;
-  background:#fff;border-radius:12px;padding:16px;border:1px solid var(--border);
-  box-shadow:0 10px 30px rgba(0,0,0,0.15)
-}
-.modal-title{margin:0 0 8px;font-size:18px;font-weight:700}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-
-/* カレンダー（コンパクト） */
-.cal-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.cal-label{font-weight:700}
-.cal-nav{padding:4px 8px}
-.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:6px 0}
-.calendar.compact div{font-size:12px}
-.calendar div{text-align:center;padding:4px;border-radius:4px;cursor:pointer}
-.calendar .header{font-weight:bold;background:#f3f4f6;cursor:default}
-.calendar .day{background:#fff;border:1px solid var(--border)}
-.calendar .day:hover{background:#e0f2fe}
-.calendar .selected{background:var(--primary);color:#fff}
-.calendar .sunday{color:red}
-.calendar .saturday{color:blue}
-
-/* 一覧カード */
-.mercari-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.m-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform 0.2s,box-shadow 0.2s}
-.m-card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,0.12)}
-.m-thumb{width:100%;aspect-ratio:4/3;object-fit:cover;background:#f3f4f6;display:block}
-.gallery{display:flex;flex-wrap:wrap;gap:4px;padding:4px}
-.gallery img{
-  width:calc(33.33% - 4px);aspect-ratio:1/1;object-fit:cover;border-radius:6px;border:1px solid var(--border)
-}
-.m-body{padding:10px;display:flex;flex-direction:column;gap:8px}
-.m-title{font-size:16px;font-weight:700;margin-bottom:4px}
-.m-price{font-size:14px;color:var(--primary)}
-.m-price .best{color:var(--ok);font-weight:600}
-.m-countdown{font-size:12px;color:var(--accent)}
-.m-countdown.expired{color:var(--danger);font-weight:700}
-.m-countdown.urgent{color:var(--danger);font-weight:700}
-.m-badges{display:flex;flex-wrap:wrap;gap:6px}
-.badge{font-size:12px;padding:4px 8px;border-radius:999px;background:#f3f4f6;border:none}
-.badge + .badge{margin-left:4px}
-
-/* 画像プレビュー（フォーム） */
-.image-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.image-preview img{width:80px;height:80px;object-fit:cover;border:1px solid var(--border);border-radius:6px}
-
-/* ページング・フッター */
-.pagination{display:flex;align-items:center;justify-content:center;gap:10px;margin:16px 0}
-.footer{font-size:12px;color:var(--muted);text-align:center;margin:12px 0 20px}
-
-/* フォーカス改善 */
-.form-field input:focus,
-.form-field select:focus,
-.form-field textarea:focus{
-  border-color:var(--primary);outline:none;box-shadow:0 0 0 2px var(--primary-100)
-}
+.modal
