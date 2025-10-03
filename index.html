@@ -24,6 +24,7 @@
     input { padding: 6px; font-size: 14px; width: 95%; margin-top: 10px; }
     ul { margin-top: 15px; padding-left: 20px; }
     li { margin-bottom: 5px; }
+    .timer { font-weight: bold; color: red; margin: 10px 0; }
   </style>
 </head>
 <body>
@@ -31,8 +32,6 @@
 
   <!-- トップメニュー -->
   <div id="menu" class="menu">
-    <button onclick="showPanel('normalPost')">📝 通常オークション出品</button>
-    <button onclick="showPanel('reversePost')">📝 逆オークション出品</button>
     <button onclick="showPanel('normalBid')">💰 通常オークション入札</button>
     <button onclick="showPanel('reverseBid')">💰 逆オークション入札</button>
   </div>
@@ -42,9 +41,10 @@
     <h2>通常オークション入札画面</h2>
     <div>商品名: サンプル商品</div>
     <div class="price">現在価格: <span id="currentPrice">5000</span> 円</div>
+    <div class="timer">残り時間: <span id="normalTimer">60</span> 秒</div>
 
     <input type="text" id="bidderName" placeholder="入札者名を入力してください">
-    <button onclick="placeBid()">入札する</button>
+    <button id="normalBidBtn" onclick="placeBid()">入札する</button>
 
     <h3>入札履歴</h3>
     <ul id="bidHistory"></ul>
@@ -57,10 +57,11 @@
     <h2>逆オークション入札画面</h2>
     <div>案件: サンプル案件（希望価格 10000円以下）</div>
     <div class="price">現在の最安値: <span id="lowestPrice">未入札</span></div>
+    <div class="timer">残り時間: <span id="reverseTimer">60</span> 秒</div>
 
     <input type="text" id="reverseBidderName" placeholder="入札者名を入力してください">
     <input type="number" id="reverseBidAmount" placeholder="提示価格を入力してください">
-    <button onclick="placeReverseBid()">入札する</button>
+    <button id="reverseBidBtn" onclick="placeReverseBid()">入札する</button>
 
     <h3>入札履歴</h3>
     <ul id="reverseBidHistory"></ul>
@@ -73,6 +74,7 @@
     let currentPrice = 5000;
     const bidStep = 500;
     const historyList = document.getElementById("bidHistory");
+    let normalTimerInterval;
 
     function placeBid() {
       const nameInput = document.getElementById("bidderName");
@@ -93,6 +95,7 @@
     // 逆オークション
     let lowestPrice = null;
     const reverseHistory = document.getElementById("reverseBidHistory");
+    let reverseTimerInterval;
 
     function placeReverseBid() {
       const nameInput = document.getElementById("reverseBidderName");
@@ -105,19 +108,16 @@
         return;
       }
 
-      // 最安値更新
       if (lowestPrice === null || bidAmount < lowestPrice) {
         lowestPrice = bidAmount;
         document.getElementById("lowestPrice").textContent = lowestPrice + " 円";
       }
 
-      // 履歴に追加
       const li = document.createElement("li");
       const now = new Date().toLocaleTimeString();
       li.textContent = `${now} - ${bidder} さんが ${bidAmount} 円を提示`;
       reverseHistory.prepend(li);
 
-      // 入力クリア
       nameInput.value = "";
       amountInput.value = "";
     }
@@ -127,10 +127,51 @@
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('menu').classList.add('hidden');
       document.getElementById(id).classList.remove('hidden');
+
+      if (id === "normalBid") startNormalTimer(60);
+      if (id === "reverseBid") startReverseTimer(60);
     }
+
     function backToMenu() {
       document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
       document.getElementById('menu').classList.remove('hidden');
+      clearInterval(normalTimerInterval);
+      clearInterval(reverseTimerInterval);
+    }
+
+    // タイマー処理
+    function startNormalTimer(seconds) {
+      clearInterval(normalTimerInterval);
+      let timeLeft = seconds;
+      document.getElementById("normalTimer").textContent = timeLeft;
+      document.getElementById("normalBidBtn").disabled = false;
+
+      normalTimerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("normalTimer").textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(normalTimerInterval);
+          document.getElementById("normalBidBtn").disabled = true;
+          alert("通常オークションは終了しました");
+        }
+      }, 1000);
+    }
+
+    function startReverseTimer(seconds) {
+      clearInterval(reverseTimerInterval);
+      let timeLeft = seconds;
+      document.getElementById("reverseTimer").textContent = timeLeft;
+      document.getElementById("reverseBidBtn").disabled = false;
+
+      reverseTimerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById("reverseTimer").textContent = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(reverseTimerInterval);
+          document.getElementById("reverseBidBtn").disabled = true;
+          alert("逆オークションは終了しました");
+        }
+      }, 1000);
     }
   </script>
 </body>
