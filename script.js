@@ -82,4 +82,93 @@ function renderPriceButtons(){
 }
 
 // ===== 投稿保存 =====
-function
+function onSubmitCreate(){
+  const title = qs("#title-input").value.trim();
+  const note  = qs("#note-input").value.trim();
+  const priceMin = parseInt(qs("#price-min").value || "", 10);
+  const priceMax = parseInt(qs("#price-max").value || "", 10);
+  const desiredMin = !isNaN(priceMin) ? priceMin : null;
+  const desiredMax = !isNaN(priceMax) ? priceMax : null;
+
+  const imageUrls = reqImages.map(f=>URL.createObjectURL(f));
+
+  const newItem = {
+    id: Date.now()+"-"+Math.random(),
+    title: title || "無題",
+    desiredMin, desiredMax,
+    cond: selected.cond,
+    region: selected.region,
+    brand: selected.brand,
+    extra: selected.extra,
+    note,
+    images: imageUrls,
+    bids: [],
+    responses: []
+  };
+
+  if (viewMode==="reverse"){
+    requests.unshift(newItem);
+    saveRequests(STORAGE_KEY_REVERSE, requests);
+  } else {
+    listings.unshift(newItem);
+    saveRequests(STORAGE_KEY_NORMAL, listings);
+  }
+
+  showModal("#create-modal", false);
+  render();
+}
+
+// ===== 一覧描画（簡易版） =====
+function render(){
+  const list = qs("#list");
+  const arr = (viewMode==="reverse"?requests:listings);
+  list.innerHTML = arr.map(r => cardHTML(r)).join("");
+}
+
+function cardHTML(r){
+  const priceLabel = formatPrice(r.desiredMin, r.desiredMax);
+  const img = (r.images && r.images.length)
+    ? `<img src="${r.images[0]}" class="m-thumb">`
+    : `<img src="https://placehold.co/400x300?text=No+Image" class="m-thumb">`;
+
+  return `
+    <div class="m-card">
+      ${img}
+      <div class="m-body">
+        <div class="m-title">${escapeHTML(r.title)}</div>
+        <div class="m-price">価格: ${priceLabel}</div>
+        <div class="m-badges">
+          ${r.brand?`<span class="badge">ブランド:${r.brand}</span>`:""}
+          ${r.cond?`<span class="badge">状態:${r.cond}</span>`:""}
+          ${r.region?`<span class="badge">地域:${r.region}</span>`:""}
+          ${r.extra?`<span class="badge">${r.extra}</span>`:""}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ===== ユーティリティ =====
+function formatPrice(min,max){
+  if(min!=null && max!=null) return `¥${min.toLocaleString()}〜¥${max.toLocaleString()}`;
+  if(min!=null) return `¥${min.toLocaleString()}〜`;
+  if(max!=null) return `〜¥${max.toLocaleString()}`;
+  return "指定なし";
+}
+
+function qs(sel){ return document.querySelector(sel); }
+function qsa(sel){ return Array.from(document.querySelectorAll(sel)); }
+function escapeHTML(str){ return str?str.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])):""; }
+function loadRequests(key){ return JSON.parse(localStorage.getItem(key)||"[]"); }
+function saveRequests(key,arr){ localStorage.setItem(key, JSON.stringify(arr)); }
+
+// ===== モーダル表示切替 =====
+function showModal(sel, show){
+  const el = qs(sel);
+  if(!el) return;
+  if(show){
+    el.classList.remove("hidden");
+  } else {
+    el.classList.add("hidden");
+  }
+}
