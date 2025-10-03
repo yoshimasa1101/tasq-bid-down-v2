@@ -1,5 +1,5 @@
 // ===== Auction System script.js =====
-// Version: 2025-10-03 unified
+// Version: 2025-10-03 unified full
 // 機能: 逆オークション / 通常オークション 両対応
 // - 上限価格ボタン方式
 // - 画像6枚添付
@@ -196,4 +196,5 @@ function cardHTML(r){
         <div class="m-countdown ${countdown.class}">${countdown.text}</div>
         <div class="m-badges">
           ${r.brand?`<span class="badge">ブランド:${r.brand}</span>`:""}
-          ${r.condition?`<span class="badge">状態:${r.condition
+          ${r.condition?`<span class="badge">状態:${r.condition}</span>`:""}
+          ${r.region?`<span class="badge">地域
