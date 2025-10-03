@@ -5,19 +5,36 @@
   <title>オークションシステム</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
-    .auction-box { border: 1px solid #ccc; padding: 20px; width: 350px; }
-    .price { font-size: 24px; margin: 10px 0; }
+    header { background: #007BFF; color: white; padding: 10px; }
+    .auction-box { border: 1px solid #ccc; padding: 20px; margin-top: 20px; width: 350px; }
+    .price { font-size: 20px; margin: 10px 0; }
     button { padding: 8px 16px; font-size: 16px; cursor: pointer; margin-top: 10px; }
     input { padding: 6px; font-size: 14px; margin-top: 10px; width: 95%; }
     ul { margin-top: 15px; padding-left: 20px; }
     li { margin-bottom: 5px; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>通常オークション</h1>
-  <div class="auction-box">
-    <div>商品名: サンプル商品</div>
-    <div class="price">現在価格: <span id="currentPrice">5000</span> 円</div>
+  <header>
+    <h1>オークションシステム</h1>
+  </header>
+
+  <!-- 商品選択 -->
+  <div id="productSelect">
+    <h2>商品を選択 - オークション</h2>
+    <select id="productDropdown">
+      <option value="">選択してください</option>
+      <option value="nike">Nike (初期価格 100000円)</option>
+      <option value="adidas">Adidas (初期価格 5000円)</option>
+    </select>
+    <button onclick="showAuction()">詳細を見る</button>
+  </div>
+
+  <!-- 入札画面 -->
+  <div id="auctionArea" class="auction-box hidden">
+    <div id="productName"></div>
+    <div class="price">現在価格: <span id="currentPrice">0</span> 円</div>
 
     <!-- 入札者名入力 -->
     <input type="text" id="bidderName" placeholder="入札者名を入力してください">
@@ -28,12 +45,41 @@
     <!-- 入札履歴 -->
     <h3>入札履歴</h3>
     <ul id="bidHistory"></ul>
+
+    <button onclick="backToSelect()">商品選択に戻る</button>
   </div>
 
   <script>
-    let currentPrice = 5000;   // 初期価格
-    const bidStep = 500;       // 入札ごとの上昇額
-    const historyList = document.getElementById("bidHistory");
+    let currentPrice = 0;
+    const bidStep = 500;
+    let selectedProduct = "";
+
+    const products = {
+      nike: { name: "Nike", startPrice: 100000 },
+      adidas: { name: "Adidas", startPrice: 5000 }
+    };
+
+    function showAuction() {
+      const dropdown = document.getElementById("productDropdown");
+      selectedProduct = dropdown.value;
+
+      if (!selectedProduct) {
+        alert("商品を選択してください");
+        return;
+      }
+
+      // 初期価格を設定
+      currentPrice = products[selectedProduct].startPrice;
+      document.getElementById("productName").textContent = "商品名: " + products[selectedProduct].name;
+      document.getElementById("currentPrice").textContent = currentPrice;
+
+      // 履歴をクリア
+      document.getElementById("bidHistory").innerHTML = "";
+
+      // 表示切り替え
+      document.getElementById("productSelect").classList.add("hidden");
+      document.getElementById("auctionArea").classList.remove("hidden");
+    }
 
     function placeBid() {
       const nameInput = document.getElementById("bidderName");
@@ -52,10 +98,15 @@
       const li = document.createElement("li");
       const now = new Date().toLocaleTimeString();
       li.textContent = `${now} - ${bidder} さんが ${currentPrice} 円で入札`;
-      historyList.prepend(li); // 新しい入札を上に追加
+      document.getElementById("bidHistory").prepend(li);
 
       // 入力欄をクリア
       nameInput.value = "";
+    }
+
+    function backToSelect() {
+      document.getElementById("auctionArea").classList.add("hidden");
+      document.getElementById("productSelect").classList.remove("hidden");
     }
   </script>
 </body>
