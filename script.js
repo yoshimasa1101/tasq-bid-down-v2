@@ -1,14 +1,10 @@
 // ===== Auction System script.js =====
-// 通常オークション: スタート価格〜即決価格
-// 逆オークション: 提案カード方式
 
 const STORAGE_KEY_REVERSE = "tasq_reverse_requests_v1";
 const STORAGE_KEY_NORMAL  = "tasq_normal_listings_v1";
 
 let requests = loadRequests(STORAGE_KEY_REVERSE);
 let listings = loadRequests(STORAGE_KEY_NORMAL);
-let page = 1;
-const PAGE_SIZE = 12;
 let viewMode = "reverse";
 let reqImages = [];
 let selected = { cond:null, region:null, brand:null, extra:null };
@@ -33,7 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   qs("#mode-select").addEventListener("change", e=>{
     viewMode = e.target.value;
-    page = 1;
     render();
   });
 
@@ -56,3 +51,27 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       reader.readAsDataURL(file);
     });
+  });
+});
+
+// ===== ボタン選択共通処理 =====
+function setupButtonGroup(id, key){
+  const wrap = qs(id);
+  if(!wrap) return;
+  wrap.onclick = (e)=>{
+    const b = e.target.closest("button.btn"); if(!b) return;
+    qsa(id+" .btn").forEach(x=>x.classList.remove("btn-primary"));
+    b.classList.add("btn-primary");
+    selected[key] = b.dataset.val;
+  };
+}
+
+// ===== 価格帯ボタン描画 =====
+function renderPriceButtons(){
+  const wrap = qs("#price-buttons"); if (!wrap) return;
+  wrap.innerHTML = PRICE_BUTTONS.map(p => 
+    `<button class="btn" data-val="${p.value}">${p.label}</button>`
+  ).join("");
+  wrap.onclick = (e)=>{
+    const b = e.target.closest("button.btn"); if (!b) return;
+    qsa("#price-buttons .btn").forEach(x=>x.classList.remove("btn-primary"));
