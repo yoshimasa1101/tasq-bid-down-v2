@@ -3,196 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <title>オークションシステム</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    :root { --blue:#0d6efd; --gray:#f5f5f7; }
-    body { font-family: system-ui, sans-serif; margin:0; background:#fff; color:#222; }
-    header { background:var(--blue); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:12px; }
-    header h1 { margin:0; font-size:18px; }
-    header input { flex:1; padding:8px 10px; border-radius:6px; border:none; }
-    main { padding:16px; max-width:960px; margin:0 auto; }
-
-    /* 商品一覧 */
-    .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap:16px; }
-    .card { border:1px solid #ddd; border-radius:10px; overflow:hidden; background:#fff; }
-    .card .thumb { height:140px; background:var(--gray); display:flex; align-items:center; justify-content:center; color:#777; }
-    .card .body { padding:12px; }
-    .card h3 { margin:0 0 6px; font-size:18px; }
-    .price-range { color:#444; margin-bottom:8px; }
-    .actions { display:flex; gap:8px; }
-    .btn { padding:8px 12px; border-radius:6px; border:1px solid #ccc; background:#fff; cursor:pointer; }
-    .btn.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
-    .btn:disabled { opacity:.6; cursor:not-allowed; }
-
-    /* 詳細・入札画面 */
-    .panel { border:1px solid #ddd; border-radius:10px; padding:16px; margin-top:20px; }
-    .panel h2 { margin:0 0 8px; }
-    .current { font-size:20px; margin:8px 0 12px; }
-    .input { width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; }
-    .history { margin-top:14px; }
-    .history ul { margin:8px 0 0; padding-left:18px; }
-    .history li { margin-bottom:6px; }
-    .hidden { display:none; }
-    footer { color:#666; font-size:12px; padding:16px; text-align:center; border-top:1px solid #eee; margin-top:20px; }
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    h1 { margin-bottom: 30px; }
+    .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 500px; margin: 0 auto; }
+    button {
+      padding: 20px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background: #0d6efd;
+      color: white;
+      transition: 0.2s;
+    }
+    button:hover { background: #0b5ed7; }
+    .hidden { display: none; }
+    .panel { border: 1px solid #ccc; padding: 20px; margin-top: 20px; max-width: 500px; margin-left:auto; margin-right:auto; text-align:left; }
+    .price { font-size: 20px; margin: 10px 0; }
+    input { padding: 6px; font-size: 14px; width: 95%; margin-top: 10px; }
+    ul { margin-top: 15px; padding-left: 20px; }
+    li { margin-bottom: 5px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>オークションシステム</h1>
-    <input id="searchInput" type="search" placeholder="商品をキーワードで検索" oninput="filterProducts()">
-  </header>
+  <h1>オークションシステム</h1>
 
-  <main>
-    <!-- 商品一覧 -->
-    <section id="listSection">
-      <div class="grid" id="productGrid"></div>
-    </section>
+  <!-- トップメニュー -->
+  <div id="menu" class="menu">
+    <button onclick="showPanel('normalPost')">📝 通常オークション出品</button>
+    <button onclick="showPanel('reversePost')">📝 逆オークション出品</button>
+    <button onclick="showPanel('normalBid')">💰 通常オークション入札</button>
+    <button onclick="showPanel('reverseBid')">💰 逆オークション入札</button>
+  </div>
 
-    <!-- 詳細・入札画面 -->
-    <section id="detailSection" class="panel hidden">
-      <h2 id="detailName"></h2>
-      <div id="detailRange" class="price-range"></div>
-      <div class="current">現在価格: <span id="detailCurrent">0</span> 円</div>
+  <!-- 通常オークション出品 -->
+  <div id="normalPost" class="panel hidden">
+    <h2>通常オークション出品フォーム</h2>
+    <p>ここにタイトル・開始価格・即決価格などの入力フォームを配置予定</p>
+    <button onclick="backToMenu()">戻る</button>
+  </div>
 
-      <input id="bidderName" class="input" type="text" placeholder="入札者名を入力してください">
-      <div class="actions">
-        <button class="btn primary" onclick="placeBid()">入札する</button>
-        <button class="btn" onclick="backToList()">一覧に戻る</button>
-      </div>
+  <!-- 逆オークション出品 -->
+  <div id="reversePost" class="panel hidden">
+    <h2>逆オークション出品フォーム</h2>
+    <p>ここに希望条件・参加人数・締切時間などの入力フォームを配置予定</p>
+    <button onclick="backToMenu()">戻る</button>
+  </div>
 
-      <div class="history">
-        <strong>入札履歴:</strong>
-        <ul id="bidHistory"></ul>
-      </div>
-    </section>
-  </main>
+  <!-- 通常オークション入札 -->
+  <div id="normalBid" class="panel hidden">
+    <h2>通常オークション入札画面</h2>
+    <div>商品名: サンプル商品</div>
+    <div class="price">現在価格: <span id="currentPrice">5000</span> 円</div>
 
-  <footer>YCU Muras Auction MVP</footer>
+    <input type="text" id="bidderName" placeholder="入札者名を入力してください">
+    <button onclick="placeBid()">入札する</button>
+
+    <h3>入札履歴</h3>
+    <ul id="bidHistory"></ul>
+
+    <button onclick="backToMenu()">戻る</button>
+  </div>
+
+  <!-- 逆オークション入札 -->
+  <div id="reverseBid" class="panel hidden">
+    <h2>逆オークション入札画面</h2>
+    <p>ここに逆オークションの入札処理を配置予定</p>
+    <button onclick="backToMenu()">戻る</button>
+  </div>
 
   <script>
-    // 商品データ（必要に応じて増やせます）
-    const products = [
-      { id:"nike",   name:"Nike",   min:50000, max:100000, startPrice:100000, img:"" },
-      { id:"adidas", name:"Adidas", min:5000,  max:30000,  startPrice:5000,   img:"" },
-      { id:"puma",   name:"Puma",   min:8000,  max:50000,  startPrice:8000,   img:"" }
-    ];
+    let currentPrice = 5000;   // 初期価格
+    const bidStep = 500;       // 入札ごとの上昇額
+    const historyList = document.getElementById("bidHistory");
 
-    // 状態
-    const bidStep = 500;
-    const state = {
-      selectedId: null,
-      currentPrices: {},    // 商品ごとの現在価格
-      histories: {}         // 商品ごとの履歴配列
-    };
-
-    // 初期化
-    function init() {
-      // 現在価格と履歴の初期化
-      products.forEach(p => {
-        state.currentPrices[p.id] = p.startPrice;
-        state.histories[p.id] = [];
-      });
-      renderList();
+    function showPanel(id) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('menu').classList.add('hidden');
+      document.getElementById(id).classList.remove('hidden');
     }
 
-    // 商品一覧描画
-    function renderList(filtered = products) {
-      const grid = document.getElementById("productGrid");
-      grid.innerHTML = "";
-      filtered.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <div class="thumb">${p.img ? `<img src="${p.img}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">` : "No Image"}</div>
-          <div class="body">
-            <h3>${p.name}</h3>
-            <div class="price-range">価格: ¥${p.min.toLocaleString()}~¥${p.max.toLocaleString()}</div>
-            <div class="actions">
-              <button class="btn" onclick="openDetail('${p.id}')">詳細を見る</button>
-              <button class="btn primary" onclick="openDetail('${p.id}')">入札する</button>
-            </div>
-          </div>
-        `;
-        grid.appendChild(card);
-      });
+    function backToMenu() {
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('menu').classList.remove('hidden');
     }
 
-    // 検索フィルタ
-    function filterProducts() {
-      const q = document.getElementById("searchInput").value.trim().toLowerCase();
-      const filtered = products.filter(p =>
-        p.name.toLowerCase().includes(q) || p.id.toLowerCase().includes(q)
-      );
-      renderList(filtered);
-    }
-
-    // 詳細画面を開く
-    function openDetail(id) {
-      state.selectedId = id;
-      const p = products.find(x => x.id === id);
-      document.getElementById("detailName").textContent = p.name;
-      document.getElementById("detailRange").textContent = `価格帯: ¥${p.min.toLocaleString()}~¥${p.max.toLocaleString()}`;
-      document.getElementById("detailCurrent").textContent = state.currentPrices[id].toLocaleString();
-
-      renderHistory();
-
-      document.getElementById("listSection").classList.add("hidden");
-      document.getElementById("detailSection").classList.remove("hidden");
-      document.getElementById("bidderName").value = "";
-      document.getElementById("bidderName").focus();
-    }
-
-    // 入札する
     function placeBid() {
       const nameInput = document.getElementById("bidderName");
       const bidder = nameInput.value.trim();
 
-      if (!state.selectedId) return;
       if (!bidder) {
         alert("入札者名を入力してください");
         return;
       }
 
-      // 価格更新
-      state.currentPrices[state.selectedId] += bidStep;
-      const newPrice = state.currentPrices[state.selectedId];
+      // 価格を更新
+      currentPrice += bidStep;
+      document.getElementById("currentPrice").textContent = currentPrice;
 
-      // 履歴追加（先頭に表示）
+      // 履歴に追加
+      const li = document.createElement("li");
       const now = new Date().toLocaleTimeString();
-      state.histories[state.selectedId].unshift({
-        time: now, bidder, price: newPrice
-      });
+      li.textContent = `${now} - ${bidder} さんが ${currentPrice} 円で入札`;
+      historyList.prepend(li);
 
-      // 画面更新
-      document.getElementById("detailCurrent").textContent = newPrice.toLocaleString();
-      renderHistory();
-
-      // 入力クリア
+      // 入力欄をクリア
       nameInput.value = "";
-      nameInput.focus();
     }
-
-    // 履歴描画
-    function renderHistory() {
-      const list = document.getElementById("bidHistory");
-      list.innerHTML = "";
-      const hist = state.histories[state.selectedId] || [];
-      hist.forEach(h => {
-        const li = document.createElement("li");
-        li.textContent = `${h.time} - ${h.bidder} さんが ¥${h.price.toLocaleString()} で入札`;
-        list.appendChild(li);
-      });
-    }
-
-    // 一覧に戻る
-    function backToList() {
-      document.getElementById("detailSection").classList.add("hidden");
-      document.getElementById("listSection").classList.remove("hidden");
-      state.selectedId = null;
-    }
-
-    // 起動
-    init();
   </script>
 </body>
 </html>
