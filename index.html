@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- ヘッダー -->
   <header class="header">
     <h1 class="title">オークションシステム</h1>
     <div class="header-controls">
@@ -15,28 +14,13 @@
         <option value="reverse">逆オークション</option>
         <option value="normal">通常オークション</option>
       </select>
-      <select id="sort-select">
-        <option value="newest">更新順</option>
-        <option value="lowest">価格が安い順</option>
-        <option value="deadline">終了が近い順</option>
-        <option value="bestOffer">最安オファー順</option>
-        <option value="popular">人気順</option>
-      </select>
       <input type="text" id="search-input" placeholder="検索...">
       <button id="open-create" class="btn btn-primary">新規投稿</button>
-      <button id="export-json" class="btn">JSON出力</button>
-      <button id="import-json" class="btn">JSON読込</button>
     </div>
   </header>
 
-  <!-- 一覧 -->
   <main class="container">
     <div id="list" class="mercari-grid"></div>
-    <div class="pagination">
-      <button id="prev-page" class="btn">前へ</button>
-      <span id="page-info">1 / 1</span>
-      <button id="next-page" class="btn">次へ</button>
-    </div>
   </main>
 
   <footer class="footer">TASQ JAPAN Auction MVP</footer>
