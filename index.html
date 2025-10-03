@@ -4,7 +4,41 @@
   <meta charset="UTF-8">
   <title>オークションシステム</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ===== styles.css 相当 ===== */
+    body { font-family: "Segoe UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif; margin:0; background:#fafafa; color:#333; }
+    .header { background:#007bff; color:#fff; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; }
+    .header .title { margin:0; font-size:20px; }
+    .header-controls { display:flex; gap:8px; align-items:center; }
+    .container { padding:20px; }
+    .footer { background:#f0f0f0; text-align:center; padding:10px; font-size:12px; color:#666; }
+
+    .btn { background:#f0f0f0; border:1px solid #ccc; padding:6px 12px; margin:2px; border-radius:4px; cursor:pointer; transition:.2s; }
+    .btn:hover { background:#e0e0e0; }
+    .btn-primary { background:#007bff; color:#fff; border-color:#007bff; }
+
+    .modal { position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; }
+    .modal.hidden { display:none; }
+    .modal-content { background:#fff; padding:20px; border-radius:6px; width:90%; max-width:600px; }
+    .modal-title { margin:0 0 10px; font-size:18px; }
+    .modal-actions { text-align:right; margin-top:15px; }
+
+    .form-section { margin-bottom:15px; }
+    .form-section .label { font-weight:bold; margin-bottom:5px; }
+    .form-field { display:flex; flex-direction:column; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .option-buttons { display:flex; flex-wrap:wrap; gap:6px; }
+    .image-preview img { width:80px; height:80px; object-fit:cover; margin:3px; border:1px solid #ccc; border-radius:4px; }
+
+    .mercari-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
+    .m-card { background:#fff; border:1px solid #ddd; border-radius:6px; overflow:hidden; display:flex; flex-direction:column; }
+    .m-thumb { width:100%; height:140px; object-fit:cover; }
+    .m-body { padding:8px; }
+    .m-title { font-size:14px; font-weight:bold; margin-bottom:4px; }
+    .m-price { color:#007bff; font-weight:bold; margin-bottom:6px; }
+    .m-badges { display:flex; flex-wrap:wrap; gap:4px; }
+    .badge { background:#eee; border-radius:3px; padding:2px 6px; font-size:11px; }
+  </style>
 </head>
 <body>
   <header class="header">
@@ -41,7 +75,6 @@
         <div id="req-image-preview" class="image-preview"></div>
       </div>
 
-      <!-- 希望価格 -->
       <div class="form-section grid-2">
         <div class="form-field">
           <label for="price-min">希望価格（最低＝スタート価格）</label>
@@ -52,12 +85,12 @@
           <input type="number" id="price-max" placeholder="例: 10000">
         </div>
       </div>
+
       <div class="form-section">
         <div class="label">価格帯ボタン（補助）</div>
         <div id="price-buttons" class="option-buttons"></div>
       </div>
 
-      <!-- 状態 -->
       <div class="form-section">
         <div class="label">状態</div>
         <div id="cond-buttons" class="option-buttons">
@@ -68,7 +101,6 @@
         </div>
       </div>
 
-      <!-- 地域 -->
       <div class="form-section">
         <div class="label">地域</div>
         <div id="region-buttons" class="option-buttons">
@@ -84,7 +116,6 @@
         </div>
       </div>
 
-      <!-- ブランド -->
       <div class="form-section">
         <div class="label">ブランド</div>
         <div id="brand-buttons" class="option-buttons">
@@ -96,7 +127,6 @@
         </div>
       </div>
 
-      <!-- その他条件 -->
       <div class="form-section">
         <div class="label">その他条件</div>
         <div id="extra-buttons" class="option-buttons">
@@ -118,6 +148,171 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+    // ===== script.js 相当 =====
+    const STORAGE_KEY_REVERSE = "tasq_reverse_requests_v1";
+    const STORAGE_KEY_NORMAL  = "tasq_normal_listings_v1";
+
+    let requests = loadRequests(STORAGE_KEY_REVERSE);
+    let listings = loadRequests(STORAGE_KEY_NORMAL);
+    let viewMode = "reverse";
+    let reqImages = [];
+    let selected = { cond:null, region:null, brand:null, extra:null };
+
+    const PRICE_BUTTONS = [
+      {label:"1,000円", value:1000},
+      {label:"5,000円", value:5000},
+      {label:"10,000円", value:10000},
+      {label:"20,000円", value:20000},
+      {label:"30,000円", value:30000},
+      {label:"50,000円", value:50000},
+      {label:"100,000円", value:100000}
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderPriceButtons();
+      setupButtonGroup("#cond-buttons","cond");
+      setupButtonGroup("#region-buttons","region");
+      setupButtonGroup("#brand-buttons","brand");
+      setupButtonGroup("#extra-buttons","extra");
+      render();
+
+      qs("#mode-select").addEventListener("change", e=>{
+        viewMode = e.target.value;
+        render();
+      });
+
+      qs("#open-create").addEventListener("click", ()=> showModal("#create-modal", true));
+      qs("#cancel-create").addEventListener("click", ()=> showModal("#create-modal", false));
+      qs("#submit-create").addEventListener("click", onSubmitCreate);
+
+      const reqImgInput = qs("#req-images");
+      const reqImgPreview = qs("#req-image-preview");
+      reqImgInput.addEventListener("change", ()=>{
+        const files = Array.from(reqImgInput.files).slice(0,6);
+        reqImages = files;
+        reqImgPreview.innerHTML = "";
+        files.forEach(file=>{
+          const reader = new FileReader();
+          reader.onload = e=>{
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            reqImgPreview.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+    });
+
+    function setupButtonGroup(id, key){
+      const wrap = qs(id);
+      if(!wrap) return;
+      wrap.onclick = (e)=>{
+        const b = e.target.closest("button.btn"); if(!b) return;
+        qsa(id+" .btn").forEach(x=>x.classList.remove("btn-primary"));
+        b.classList.add("btn-primary");
+        selected[key] = b.dataset.val;
+      };
+    }
+
+    function renderPriceButtons(){
+      const wrap = qs("#price-buttons"); if (!wrap) return;
+      wrap.innerHTML = PRICE_BUTTONS.map(p => 
+        `<button class="btn" data-val="${p.value}">${p.label}</button>`
+      ).join("");
+      wrap.onclick = (e)=>{
+        const b = e.target.closest("button.btn"); if (!b) return;
+        qsa("#price-buttons .btn").forEach(x=>x.classList.remove("btn-primary"));
+        b.classList.add("btn-primary");
+        const val = parseInt(b.dataset.val,10);
+        qs("#price-max").value = val;
+      };
+    }
+
+    function onSubmitCreate(){
+      const title = qs("#title-input").value.trim();
+      const note  = qs("#note-input").value.trim();
+      const priceMin = parseInt(qs("#price-min").value || "", 10);
+      const priceMax = parseInt(qs("#price-max").value || "", 10);
+      const desiredMin = !isNaN(priceMin) ? priceMin : null;
+      const desiredMax = !isNaN(priceMax) ? priceMax : null;
+
+      const imageUrls = reqImages.map(f=>URL.createObjectURL(f));
+
+      const newItem = {
+        id: Date.now()+"-"+Math.random(),
+        title: title || "無題",
+        desiredMin, desiredMax,
+        cond: selected.cond,
+        region: selected.region,
+        brand: selected.brand,
+        extra: selected.extra,
+        note,
+        images: imageUrls,
+        bids: [],
+        responses: []
+      };
+
+      if (viewMode==="reverse"){
+        requests.unshift(newItem);
+        saveRequests(STORAGE_KEY_REVERSE, requests);
+      } else {
+        listings.unshift(newItem);
+        saveRequests(STORAGE_KEY_NORMAL, listings);
+      }
+
+      showModal("#create-modal", false);
+      render();
+    }
+
+    function render(){
+      const list = qs("#list");
+      const arr = (viewMode==="reverse"?requests:listings);
+      list.innerHTML = arr.map(r => cardHTML(r)).join("");
+    }
+
+    function cardHTML(r){
+      const priceLabel = formatPrice(r.desiredMin, r.desiredMax);
+      const img = (r.images && r.images.length)
+        ? `<img src="${r.images[0]}" class="m-thumb">`
+        : `<img src="https://placehold.co/400x300?text=No+Image" class="m-thumb">`;
+
+      return `
+        <div class="m-card">
+          ${img}
+          <div class="m-body">
+            <div class="m-title">${escapeHTML(r.title)}</div>
+            <div class="m-price">価格: ${priceLabel}</div>
+            <div class="m-badges">
+              ${r.brand?`<span class="badge">ブランド:${r.brand}</span>`:""}
+              ${r.cond?`<span class="badge">状態:${r.cond}</span>`:""}
+              ${r.region?`<span class="badge">地域:${r.region}</span>`:""}
+              ${r.extra?`<span class="badge">${r.extra}</span>`:""}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function formatPrice(min,max){
+      if(min!=null && max!=null) return `¥${min.toLocaleString()}〜¥${max.toLocaleString()}`;
+      if(min!=null) return `¥${min.toLocaleString()}〜`;
+      if(max!=null) return `〜¥${max.toLocaleString()}`;
+      return "指定なし";
+    }
+
+    function qs(sel){ return document.querySelector(sel); }
+    function qsa(sel){ return Array.from(document.querySelectorAll(sel)); }
+    function escapeHTML(str){ return str?str.replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])):""; }
+    function loadRequests(key){ return JSON.parse(localStorage.getItem(key)||"[]"); }
+    function saveRequests(key,arr){ localStorage.setItem(key, JSON.stringify(arr)); }
+
+    function showModal(sel, show){
+      const el = qs(sel);
+      if(!el) return;
+      if(show){ el.classList.remove("hidden"); }
+      else { el.classList.add("hidden"); }
+    }
+  </script>
 </body>
 </html>
