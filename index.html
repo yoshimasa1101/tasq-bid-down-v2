@@ -7,13 +7,16 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- ヘッダー -->
   <header class="header">
     <h1 class="title">オークションシステム</h1>
     <div class="header-controls">
+      <!-- モード切替 -->
       <select id="mode-select">
         <option value="reverse">逆オークション</option>
         <option value="normal">通常オークション</option>
       </select>
+      <!-- 並び替え -->
       <select id="sort-select">
         <option value="newest">更新順</option>
         <option value="lowest">価格が安い順</option>
@@ -21,19 +24,29 @@
         <option value="bestOffer">最安オファー順</option>
         <option value="popular">人気順</option>
       </select>
+      <!-- 検索 -->
       <input type="text" id="search-input" placeholder="検索...">
+      <!-- 届け先 -->
       <select id="dest-select">
         <option value="全国" selected>届け先: 全国</option>
         <option value="北海道">北海道</option>
+        <option value="東北">東北</option>
         <option value="関東">関東</option>
+        <option value="中部">中部</option>
         <option value="近畿">近畿</option>
+        <option value="中国">中国</option>
+        <option value="四国">四国</option>
+        <option value="九州">九州</option>
+        <option value="沖縄・離島">沖縄・離島</option>
       </select>
+      <!-- ボタン群 -->
       <button id="open-create" class="btn btn-primary">新規投稿</button>
       <button id="export-json" class="btn">JSON出力</button>
       <button id="import-json" class="btn">JSON読込</button>
     </div>
   </header>
 
+  <!-- 一覧 -->
   <main class="container">
     <div id="list" class="mercari-grid"></div>
     <div class="pagination">
@@ -50,26 +63,28 @@
     <div class="modal-content">
       <h2 class="modal-title">新規投稿</h2>
 
+      <!-- タイトル -->
       <div class="form-section">
         <label for="title-input">タイトル</label>
         <input type="text" id="title-input" placeholder="例: Nike バックパック 黒">
       </div>
 
+      <!-- 画像 -->
       <div class="form-section">
         <label for="req-images">画像（最大6枚）</label>
         <input type="file" id="req-images" accept="image/*" multiple>
         <div id="req-image-preview" class="image-preview"></div>
       </div>
 
-      <!-- 希望価格（手入力＋補助ボタン） -->
+      <!-- 希望価格（最低＝スタート価格、最高＝即決価格） -->
       <div class="form-section grid-2">
         <div class="form-field">
-          <label for="price-min">希望価格（最低）</label>
-          <input type="number" id="price-min" placeholder="例: 9800">
+          <label for="price-min">希望価格（最低＝スタート価格）</label>
+          <input type="number" id="price-min" placeholder="例: 5000">
         </div>
         <div class="form-field">
-          <label for="price-max">希望価格（最高）</label>
-          <input type="number" id="price-max" placeholder="例: 12800">
+          <label for="price-max">希望価格（最高＝即決価格）</label>
+          <input type="number" id="price-max" placeholder="例: 10000">
         </div>
       </div>
       <div class="form-section">
@@ -77,11 +92,62 @@
         <div id="price-buttons" class="option-buttons"></div>
       </div>
 
+      <!-- 状態 -->
+      <div class="form-section">
+        <div class="label">状態</div>
+        <div id="cond-buttons" class="option-buttons">
+          <button class="btn" data-val="新品">新品</button>
+          <button class="btn" data-val="未使用に近い">未使用に近い</button>
+          <button class="btn" data-val="中古（良品）">中古（良品）</button>
+          <button class="btn" data-val="中古（可）">中古（可）</button>
+        </div>
+      </div>
+
+      <!-- 地域 -->
+      <div class="form-section">
+        <div class="label">地域</div>
+        <div id="region-buttons" class="option-buttons">
+          <button class="btn" data-val="北海道">北海道</button>
+          <button class="btn" data-val="東北">東北</button>
+          <button class="btn" data-val="関東">関東</button>
+          <button class="btn" data-val="中部">中部</button>
+          <button class="btn" data-val="近畿">近畿</button>
+          <button class="btn" data-val="中国">中国</button>
+          <button class="btn" data-val="四国">四国</button>
+          <button class="btn" data-val="九州">九州</button>
+          <button class="btn" data-val="沖縄・離島">沖縄・離島</button>
+        </div>
+      </div>
+
+      <!-- ブランド -->
+      <div class="form-section">
+        <div class="label">ブランド</div>
+        <div id="brand-buttons" class="option-buttons">
+          <button class="btn" data-val="Nike">Nike</button>
+          <button class="btn" data-val="Adidas">Adidas</button>
+          <button class="btn" data-val="Puma">Puma</button>
+          <button class="btn" data-val="Supreme">Supreme</button>
+          <button class="btn" data-val="その他">その他</button>
+        </div>
+      </div>
+
+      <!-- その他条件 -->
+      <div class="form-section">
+        <div class="label">その他条件</div>
+        <div id="extra-buttons" class="option-buttons">
+          <button class="btn" data-val="送料込み">送料込み</button>
+          <button class="btn" data-val="保証あり">保証あり</button>
+          <button class="btn" data-val="返品可">返品可</button>
+        </div>
+      </div>
+
+      <!-- 追加条件 -->
       <div class="form-section">
         <label for="note-input">追加条件</label>
         <textarea id="note-input" rows="3"></textarea>
       </div>
 
+      <!-- アクション -->
       <div class="modal-actions">
         <button id="cancel-create" class="btn">キャンセル</button>
         <button id="submit-create" class="btn btn-primary">投稿</button>
