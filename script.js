@@ -75,3 +75,11 @@ function renderPriceButtons(){
   wrap.onclick = (e)=>{
     const b = e.target.closest("button.btn"); if (!b) return;
     qsa("#price-buttons .btn").forEach(x=>x.classList.remove("btn-primary"));
+    b.classList.add("btn-primary");
+    const val = parseInt(b.dataset.val,10);
+    qs("#price-max").value = val;
+  };
+}
+
+// ===== 投稿保存 =====
+function
