@@ -37,20 +37,6 @@
     <button onclick="showPanel('reverseBid')">💰 逆オークション入札</button>
   </div>
 
-  <!-- 通常オークション出品 -->
-  <div id="normalPost" class="panel hidden">
-    <h2>通常オークション出品フォーム</h2>
-    <p>ここにタイトル・開始価格・即決価格などの入力フォームを配置予定</p>
-    <button onclick="backToMenu()">戻る</button>
-  </div>
-
-  <!-- 逆オークション出品 -->
-  <div id="reversePost" class="panel hidden">
-    <h2>逆オークション出品フォーム</h2>
-    <p>ここに希望条件・参加人数・締切時間などの入力フォームを配置予定</p>
-    <button onclick="backToMenu()">戻る</button>
-  </div>
-
   <!-- 通常オークション入札 -->
   <div id="normalBid" class="panel hidden">
     <h2>通常オークション入札画面</h2>
@@ -69,47 +55,82 @@
   <!-- 逆オークション入札 -->
   <div id="reverseBid" class="panel hidden">
     <h2>逆オークション入札画面</h2>
-    <p>ここに逆オークションの入札処理を配置予定</p>
+    <div>案件: サンプル案件（希望価格 10000円以下）</div>
+    <div class="price">現在の最安値: <span id="lowestPrice">未入札</span></div>
+
+    <input type="text" id="reverseBidderName" placeholder="入札者名を入力してください">
+    <input type="number" id="reverseBidAmount" placeholder="提示価格を入力してください">
+    <button onclick="placeReverseBid()">入札する</button>
+
+    <h3>入札履歴</h3>
+    <ul id="reverseBidHistory"></ul>
+
     <button onclick="backToMenu()">戻る</button>
   </div>
 
   <script>
-    let currentPrice = 5000;   // 初期価格
-    const bidStep = 500;       // 入札ごとの上昇額
+    // 通常オークション
+    let currentPrice = 5000;
+    const bidStep = 500;
     const historyList = document.getElementById("bidHistory");
-
-    function showPanel(id) {
-      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
-      document.getElementById('menu').classList.add('hidden');
-      document.getElementById(id).classList.remove('hidden');
-    }
-
-    function backToMenu() {
-      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
-      document.getElementById('menu').classList.remove('hidden');
-    }
 
     function placeBid() {
       const nameInput = document.getElementById("bidderName");
       const bidder = nameInput.value.trim();
+      if (!bidder) { alert("入札者名を入力してください"); return; }
 
-      if (!bidder) {
-        alert("入札者名を入力してください");
-        return;
-      }
-
-      // 価格を更新
       currentPrice += bidStep;
       document.getElementById("currentPrice").textContent = currentPrice;
 
-      // 履歴に追加
       const li = document.createElement("li");
       const now = new Date().toLocaleTimeString();
       li.textContent = `${now} - ${bidder} さんが ${currentPrice} 円で入札`;
       historyList.prepend(li);
 
-      // 入力欄をクリア
       nameInput.value = "";
+    }
+
+    // 逆オークション
+    let lowestPrice = null;
+    const reverseHistory = document.getElementById("reverseBidHistory");
+
+    function placeReverseBid() {
+      const nameInput = document.getElementById("reverseBidderName");
+      const bidder = nameInput.value.trim();
+      const amountInput = document.getElementById("reverseBidAmount");
+      const bidAmount = parseInt(amountInput.value);
+
+      if (!bidder || !bidAmount) {
+        alert("入札者名と提示価格を入力してください");
+        return;
+      }
+
+      // 最安値更新
+      if (lowestPrice === null || bidAmount < lowestPrice) {
+        lowestPrice = bidAmount;
+        document.getElementById("lowestPrice").textContent = lowestPrice + " 円";
+      }
+
+      // 履歴に追加
+      const li = document.createElement("li");
+      const now = new Date().toLocaleTimeString();
+      li.textContent = `${now} - ${bidder} さんが ${bidAmount} 円を提示`;
+      reverseHistory.prepend(li);
+
+      // 入力クリア
+      nameInput.value = "";
+      amountInput.value = "";
+    }
+
+    // 共通：画面切替
+    function showPanel(id) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('menu').classList.add('hidden');
+      document.getElementById(id).classList.remove('hidden');
+    }
+    function backToMenu() {
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('menu').classList.remove('hidden');
     }
   </script>
 </body>
