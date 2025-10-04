@@ -1,247 +1,27 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>オークションシステム</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: system-ui, sans-serif; text-align: center; padding: 40px; }
-    h1 { margin-bottom: 30px; }
-    .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 520px; margin: 0 auto; }
-    button {
-      padding: 16px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background: #0d6efd;
-      color: #fff;
-      transition: 0.2s;
-    }
-    button:hover { background: #0b5ed7; }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
-    .hidden { display: none; }
-    .panel { border: 1px solid #ccc; padding: 20px; margin-top: 20px; max-width: 560px; margin-left: auto; margin-right: auto; text-align: left; border-radius: 10px; }
-    .price { font-size: 20px; margin: 10px 0; }
-    .timer { font-weight: bold; color: #d90429; margin: 10px 0; }
-    .winner { font-weight: bold; color: #2b9348; margin-top: 15px; }
-    input { padding: 10px; font-size: 14px; width: 100%; box-sizing: border-box; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; }
-    .actions { display: flex; gap: 10px; margin-top: 12px; }
-    ul { margin-top: 15px; padding-left: 20px; }
-    li { margin-bottom: 6px; }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TASQ JAPAN</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <h1>オークションシステム</h1>
+  <header>
+    <h1>TASQ JAPAN</h1>
+  </header>
 
-  <!-- メニュー -->
-  <div id="menu" class="menu">
-    <button onclick="showPanel('normalBid')">💰 通常オークション入札</button>
-    <button onclick="showPanel('reverseBid')">💰 逆オークション入札</button>
-  </div>
+  <main id="content">
+    <!-- JSで画面を切り替え -->
+  </main>
 
-  <!-- 通常オークション入札 -->
-  <section id="normalBid" class="panel hidden">
-    <h2>通常オークション入札画面</h2>
-    <div>商品名: サンプル商品</div>
-    <div class="price">現在価格: <span id="currentPrice">5000</span> 円</div>
-    <div class="timer">残り時間: <span id="normalTimer">60</span> 秒</div>
+  <nav class="bottom-nav">
+    <button id="tab-auction">オークション</button>
+    <button id="tab-request">リクエスト</button>
+    <button id="tab-mypage">マイページ</button>
+  </nav>
 
-    <input id="bidderName" type="text" placeholder="入札者名を入力してください" />
-    <div class="actions">
-      <button id="normalBidBtn" onclick="placeBid()">入札する</button>
-      <button onclick="backToMenu()">メニューに戻る</button>
-    </div>
-
-    <h3>入札履歴</h3>
-    <ul id="bidHistory"></ul>
-
-    <div id="normalWinner" class="winner"></div>
-  </section>
-
-  <!-- 逆オークション入札 -->
-  <section id="reverseBid" class="panel hidden">
-    <h2>逆オークション入札画面</h2>
-    <div>案件: サンプル案件（希望価格 10,000 円以下）</div>
-    <div class="price">現在の最安値: <span id="lowestPrice">未入札</span></div>
-    <div class="timer">残り時間: <span id="reverseTimer">60</span> 秒</div>
-
-    <input id="reverseBidderName" type="text" placeholder="入札者名を入力してください" />
-    <input id="reverseBidAmount" type="number" min="1" placeholder="提示価格を入力してください" />
-    <div class="actions">
-      <button id="reverseBidBtn" onclick="placeReverseBid()">入札する</button>
-      <button onclick="backToMenu()">メニューに戻る</button>
-    </div>
-
-    <h3>入札履歴</h3>
-    <ul id="reverseBidHistory"></ul>
-
-    <div id="reverseWinner" class="winner"></div>
-  </section>
-
-  <script>
-    // ===== 通常オークション状態 =====
-    let currentPrice = 5000;
-    const bidStep = 500;
-    let normalTimerInterval = null;
-    const normalHistoryEl = document.getElementById("bidHistory");
-    let normalBids = []; // { bidder, price, time }
-
-    function placeBid() {
-      const nameInput = document.getElementById("bidderName");
-      const bidder = nameInput.value.trim();
-      if (!bidder) { alert("入札者名を入力してください"); return; }
-      if (document.getElementById("normalBidBtn").disabled) { return; }
-
-      currentPrice += bidStep;
-      document.getElementById("currentPrice").textContent = currentPrice.toLocaleString();
-
-      const now = new Date().toLocaleTimeString();
-      normalBids.push({ bidder, price: currentPrice, time: now });
-
-      const li = document.createElement("li");
-      li.textContent = `${now} - ${bidder} さんが ¥${currentPrice.toLocaleString()} で入札`;
-      normalHistoryEl.prepend(li);
-
-      nameInput.value = "";
-      nameInput.focus();
-    }
-
-    function declareNormalWinner() {
-      const winnerEl = document.getElementById("normalWinner");
-      if (normalBids.length === 0) {
-        winnerEl.textContent = "入札者なし → 落札者なし";
-      } else {
-        const last = normalBids[normalBids.length - 1]; // 最高値は最後の入札
-        winnerEl.textContent = `落札者: ${last.bidder} さん（¥${last.price.toLocaleString()}）`;
-      }
-      alert("通常オークションは終了しました");
-    }
-
-    function startNormalTimer(seconds) {
-      clearInterval(normalTimerInterval);
-      let timeLeft = seconds;
-      document.getElementById("normalTimer").textContent = timeLeft;
-      document.getElementById("normalBidBtn").disabled = false;
-      document.getElementById("normalWinner").textContent = "";
-
-      normalTimerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById("normalTimer").textContent = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(normalTimerInterval);
-          document.getElementById("normalBidBtn").disabled = true;
-          declareNormalWinner();
-        }
-      }, 1000);
-    }
-
-    // ===== 逆オークション状態 =====
-    let lowestPrice = null;
-    let reverseTimerInterval = null;
-    const reverseHistoryEl = document.getElementById("reverseBidHistory");
-    let reverseBids = []; // { bidder, price, time }
-
-    function placeReverseBid() {
-      const nameInput = document.getElementById("reverseBidderName");
-      const bidder = nameInput.value.trim();
-      const amountInput = document.getElementById("reverseBidAmount");
-      const bidAmount = parseInt(amountInput.value, 10);
-
-      if (!bidder || !bidAmount || bidAmount <= 0) {
-        alert("入札者名と正しい提示価格を入力してください");
-        return;
-      }
-      if (document.getElementById("reverseBidBtn").disabled) { return; }
-
-      const now = new Date().toLocaleTimeString();
-      reverseBids.push({ bidder, price: bidAmount, time: now });
-
-      if (lowestPrice === null || bidAmount < lowestPrice) {
-        lowestPrice = bidAmount;
-        document.getElementById("lowestPrice").textContent = `¥${lowestPrice.toLocaleString()}`;
-      }
-
-      const li = document.createElement("li");
-      li.textContent = `${now} - ${bidder} さんが ¥${bidAmount.toLocaleString()} を提示`;
-      reverseHistoryEl.prepend(li);
-
-      nameInput.value = "";
-      amountInput.value = "";
-      nameInput.focus();
-    }
-
-    function declareReverseWinner() {
-      const winnerEl = document.getElementById("reverseWinner");
-      if (reverseBids.length === 0) {
-        winnerEl.textContent = "入札者なし → 落札者なし";
-      } else {
-        let winner = reverseBids[0];
-        for (const b of reverseBids) {
-          if (b.price < winner.price) winner = b;
-        }
-        winnerEl.textContent = `落札者: ${winner.bidder} さん（¥${winner.price.toLocaleString()}）`;
-      }
-      alert("逆オークションは終了しました");
-    }
-
-    function startReverseTimer(seconds) {
-      clearInterval(reverseTimerInterval);
-      let timeLeft = seconds;
-      document.getElementById("reverseTimer").textContent = timeLeft;
-      document.getElementById("reverseBidBtn").disabled = false;
-      document.getElementById("reverseWinner").textContent = "";
-
-      reverseTimerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById("reverseTimer").textContent = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(reverseTimerInterval);
-          document.getElementById("reverseBidBtn").disabled = true;
-          declareReverseWinner();
-        }
-      }, 1000);
-    }
-
-    // ===== 画面切り替え＆リセット =====
-    function showPanel(id) {
-      document.querySelectorAll(".panel").forEach(p => p.classList.add("hidden"));
-      document.getElementById("menu").classList.add("hidden");
-      document.getElementById(id).classList.remove("hidden");
-
-      if (id === "normalBid") startNormalTimer(60);
-      if (id === "reverseBid") startReverseTimer(60);
-    }
-
-    function backToMenu() {
-      // パネル切り替え
-      document.querySelectorAll(".panel").forEach(p => p.classList.add("hidden"));
-      document.getElementById("menu").classList.remove("hidden");
-
-      // タイマー停止
-      clearInterval(normalTimerInterval);
-      clearInterval(reverseTimerInterval);
-
-      // 状態リセット（画面と内部）
-      normalBids = [];
-      reverseBids = [];
-      currentPrice = 5000;
-      lowestPrice = null;
-
-      document.getElementById("currentPrice").textContent = "5000";
-      document.getElementById("lowestPrice").textContent = "未入札";
-      document.getElementById("normalTimer").textContent = "60";
-      document.getElementById("reverseTimer").textContent = "60";
-      document.getElementById("normalBidBtn").disabled = false;
-      document.getElementById("reverseBidBtn").disabled = false;
-      document.getElementById("normalWinner").textContent = "";
-      document.getElementById("reverseWinner").textContent = "";
-      normalHistoryEl.innerHTML = "";
-      reverseHistoryEl.innerHTML = "";
-      document.getElementById("bidderName").value = "";
-      document.getElementById("reverseBidderName").value = "";
-      document.getElementById("reverseBidAmount").value = "";
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
