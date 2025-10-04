@@ -1,105 +1,199 @@
-// Supabase接続設定
-const SUPABASE_URL = "https://xxxx.supabase.co"; // ←自分のURL
-const SUPABASE_KEY = "public-anon-key";          // ←自分のanon key
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ===== Supabase client =====
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"; // ←置き換え
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";               // ←置き換え
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// オークション一覧
+// ===== UI helpers =====
+const content = document.getElementById("content");
+const tabs = {
+  auction: document.getElementById("tab-auction"),
+  request: document.getElementById("tab-request"),
+  mypage: document.getElementById("tab-mypage"),
+};
+
+function yen(n) {
+  try { return `¥${Number(n).toLocaleString("ja-JP")}`; } catch { return `¥${n}`; }
+}
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1800);
+}
+function setActive(tabBtn) {
+  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+  tabBtn.classList.add("active");
+}
+
+// ===== Auctions =====
 async function renderAuctions() {
-  const content = document.getElementById("content");
+  setActive(tabs.auction);
   content.innerHTML = `
-    <h2>オークション一覧</h2>
-    <form id="auctionForm">
-      <input type="text" id="title" placeholder="商品名" required>
-      <input type="number" id="price" placeholder="開始価格" required>
-      <input type="text" id="time" placeholder="残り時間 (例: 2日)" required>
-      <button type="submit">出品する</button>
-    </form>
+    <div class="card">
+      <h3>出品フォーム</h3>
+      <form id="auctionForm">
+        <div class="input-row">
+          <input id="a_title" type="text" placeholder="商品名" required />
+          <input id="a_price" type="number" min="0" step="100" placeholder="開始価格" required />
+          <input id="a_time" type="text" placeholder="残り時間（例: 2日）" required />
+        </div>
+        <button type="submit">出品する</button>
+      </form>
+    </div>
     <div id="auctionList"></div>
   `;
 
   document.getElementById("auctionForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const title = document.getElementById("title").value;
-    const price = parseInt(document.getElementById("price").value);
-    const time = document.getElementById("time").value;
-    await supabase.from("auctions").insert([{ title, price, time }]);
-    renderAuctions();
+    const title = document.getElementById("a_title").value.trim();
+    const price = parseInt(document.getElementById("a_price").value, 10);
+    const time = document.getElementById("a_time").value.trim();
+    if (!title || isNaN(price) || !time) return toast("入力を確認してください");
+    const { error } = await sb.from("auctions").insert([{ title, price, time }]);
+    if (error) return toast("出品エラー: " + error.message);
+    toast("出品しました");
+    await loadAuctions();
   });
 
-  let { data: auctions, error } = await supabase.from("auctions").select("*");
+  await loadAuctions();
+
+  // Realtime updates
+  sb.channel("auctions-ch")
+    .on("postgres_changes", { event: "*", schema: "public", table: "auctions" }, loadAuctions)
+    .subscribe();
+}
+
+async function loadAuctions() {
   const list = document.getElementById("auctionList");
+  list.innerHTML = `<div class="card"><p>読み込み中...</p></div>`;
+  const { data, error } = await sb.from("auctions").select("*").order("id", { ascending: false });
   if (error) {
-    list.innerHTML = `<p>エラー: ${error.message}</p>`;
+    list.innerHTML = `<div class="card"><p>エラー: ${error.message}</p></div>`;
     return;
   }
-  auctions.forEach(a => {
-    list.innerHTML += `
-      <div class="card">
-        <h3>${a.title}</h3>
-        <p>現在価格: ¥${a.price}</p>
-        <p>${a.time}</p>
-        <button onclick="bid(${a.id}, ${a.price})">入札する</button>
-      </div>`;
-  });
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="card"><p>出品はまだありません</p></div>`;
+    return;
+  }
+  list.innerHTML = data.map(a => `
+    <div class="card">
+      <h3>${a.title}</h3>
+      <p>現在価格: ${yen(a.price)}</p>
+      <p>${a.time}</p>
+      <div class="row">
+        <button onclick="bid(${a.id}, ${a.price})">+1,000円 入札</button>
+        <button class="secondary" onclick="customBid(${a.id})">金額指定で入札</button>
+      </div>
+    </div>
+  `).join("");
 }
 
-// 入札処理
 async function bid(id, currentPrice) {
-  const newPrice = currentPrice + 1000;
-  await supabase.from("auctions").update({ price: newPrice }).eq("id", id);
-  renderAuctions();
+  const newPrice = Number(currentPrice) + 1000;
+  const { error } = await sb.from("auctions").update({ price: newPrice }).eq("id", id);
+  if (error) return toast("入札エラー: " + error.message);
+  toast("入札しました");
 }
 
-// リクエスト一覧
+async function customBid(id) {
+  const amt = prompt("入札金額を入力してください（整数）");
+  if (amt === null) return;
+  const price = parseInt(amt, 10);
+  if (isNaN(price) || price <= 0) return toast("金額を確認してください");
+  const { error } = await sb.from("auctions").update({ price }).eq("id", id);
+  if (error) return toast("入札エラー: " + error.message);
+  toast("入札しました");
+}
+
+// ===== Requests (reverse auction) =====
 async function renderRequests() {
-  const content = document.getElementById("content");
+  setActive(tabs.request);
   content.innerHTML = `
-    <h2>リクエスト一覧</h2>
-    <form id="requestForm">
-      <input type="text" id="want" placeholder="欲しい商品" required>
-      <input type="number" id="reqPrice" placeholder="希望価格" required>
-      <button type="submit">リクエスト投稿</button>
-    </form>
+    <div class="card">
+      <h3>リクエスト投稿</h3>
+      <form id="requestForm">
+        <div class="input-row">
+          <input id="r_want" type="text" placeholder="欲しい商品" required />
+          <input id="r_price" type="number" min="0" step="100" placeholder="希望価格" required />
+        </div>
+        <button type="submit">投稿する</button>
+      </form>
+    </div>
     <div id="requestList"></div>
   `;
 
   document.getElementById("requestForm").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const want = document.getElementById("want").value;
-    const price = parseInt(document.getElementById("reqPrice").value);
-    await supabase.from("requests").insert([{ want, price }]);
-    renderRequests();
+    const want = document.getElementById("r_want").value.trim();
+    const price = parseInt(document.getElementById("r_price").value, 10);
+    if (!want || isNaN(price)) return toast("入力を確認してください");
+    const { error } = await sb.from("requests").insert([{ want, price }]);
+    if (error) return toast("投稿エラー: " + error.message);
+    toast("投稿しました");
+    await loadRequests();
   });
 
-  let { data: requests, error } = await supabase.from("requests").select("*");
-  const list = document.getElementById("requestList");
-  if (error) {
-    list.innerHTML = `<p>エラー: ${error.message}</p>`;
-    return;
-  }
-  requests.forEach(r => {
-    list.innerHTML += `
-      <div class="card">
-        <h3>${r.want}</h3>
-        <p>希望価格: ¥${r.price}</p>
-        <button>提案する</button>
-      </div>`;
-  });
+  await loadRequests();
+
+  // Realtime updates
+  sb.channel("requests-ch")
+    .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, loadRequests)
+    .subscribe();
 }
 
-// マイページ
-function renderMyPage() {
-  const content = document.getElementById("content");
+async function loadRequests() {
+  const list = document.getElementById("requestList");
+  list.innerHTML = `<div class="card"><p>読み込み中...</p></div>`;
+  const { data, error } = await sb.from("requests").select("*").order("id", { ascending: false });
+  if (error) {
+    list.innerHTML = `<div class="card"><p>エラー: ${error.message}</p></div>`;
+    return;
+  }
+  if (!data || data.length === 0) {
+    list.innerHTML = `<div class="card"><p>リクエストはまだありません</p></div>`;
+    return;
+  }
+  list.innerHTML = data.map(r => `
+    <div class="card">
+      <h3>${r.want}</h3>
+      <p>希望価格: ${yen(r.price)}</p>
+      <div class="row">
+        <button class="secondary" onclick="propose(${r.id})">提案する</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function propose(id) {
+  const text = prompt("提案内容を入力してください（例：商品状態・価格など）");
+  if (text === null || !text.trim()) return;
+  // まずはUI上の体験のみ（DBは後続拡張でcommentsテーブル追加）
+  toast("提案を送信しました");
+}
+
+// ===== My page =====
+async function renderMyPage() {
+  setActive(tabs.mypage);
+  const { data: aCount } = await sb.from("auctions").select("id", { count: "exact", head: true });
+  const { data: rCount } = await sb.from("requests").select("id", { count: "exact", head: true });
+
   content.innerHTML = `
-    <h2>マイページ</h2>
-    <p>出品中・入札中・リクエスト履歴は今後拡張予定</p>
+    <div class="card">
+      <h3>マイページ（概要）</h3>
+      <p>出品数: ${aCount?.length ?? 0} 件</p>
+      <p>リクエスト数: ${rCount?.length ?? 0} 件</p>
+      <p class="muted">認証・履歴は後続で拡張予定</p>
+    </div>
   `;
 }
 
-// タブ切替
-document.getElementById("tab-auction").addEventListener("click", renderAuctions);
-document.getElementById("tab-request").addEventListener("click", renderRequests);
-document.getElementById("tab-mypage").addEventListener("click", renderMyPage);
+// ===== Tab events & initial render =====
+tabs.auction.addEventListener("click", renderAuctions);
+tabs.request.addEventListener("click", renderRequests);
+tabs.mypage.addEventListener("click", renderMyPage);
 
-// 初期表示
 renderAuctions();
+
+window.bid = bid;
+window.customBid = customBid;
+window.propose = propose;
