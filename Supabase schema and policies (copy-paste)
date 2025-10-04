@@ -1,1 +1,39 @@
+-- Tables
+create table if not exists public.auctions (
+  id bigint generated always as identity primary key,
+  title text not null,
+  price int not null,
+  time text not null,
+  inserted_at timestamp with time zone default now()
+);
+
+create table if not exists public.requests (
+  id bigint generated always as identity primary key,
+  want text not null,
+  price int not null,
+  inserted_at timestamp with time zone default now()
+);
+
+-- Enable RLS
+alter table public.auctions enable row level security;
+alter table public.requests enable row level security;
+
+-- Public policies for MVP (allow anonymous SELECT/INSERT/UPDATE)
+create policy "auctions_select_public" on public.auctions
+  for select using (true);
+
+create policy "auctions_insert_public" on public.auctions
+  for insert with check (true);
+
+create policy "auctions_update_public" on public.auctions
+  for update using (true) with check (true);
+
+create policy "requests_select_public" on public.requests
+  for select using (true);
+
+create policy "requests_insert_public" on public.requests
+  for insert with check (true);
+
+create policy "requests_update_public" on public.requests
+  for update using (true) with check (true);
 
