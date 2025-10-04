@@ -18,7 +18,7 @@ create table if not exists public.requests (
 alter table public.auctions enable row level security;
 alter table public.requests enable row level security;
 
--- Public policies for MVP (allow anonymous SELECT/INSERT/UPDATE)
+-- MVP policies（匿名のSELECT/INSERT/UPDATEを許可）
 create policy "auctions_select_public" on public.auctions
   for select using (true);
 
@@ -36,4 +36,3 @@ create policy "requests_insert_public" on public.requests
 
 create policy "requests_update_public" on public.requests
   for update using (true) with check (true);
-
