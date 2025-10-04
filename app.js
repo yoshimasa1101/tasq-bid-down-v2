@@ -1,210 +1,145 @@
-// ===== Supabase client =====
-// 必ず差し替え：自分のプロジェクトのURLとanon key
-const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"; // ←置き換え
-const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";               // ←置き換え
+// Supabase 接続設定（必ず自分のプロジェクトの値に差し替えてください）
+const SUPABASE_URL = "https://xxxx.supabase.co";
+const SUPABASE_ANON_KEY = "your-anon-key";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// CDN読み込み時は global の supabase を使用
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ===== UI helpers =====
+// DOM 要素
 const content = document.getElementById("content");
-const tabs = {
-  auction: document.getElementById("tab-auction"),
-  request: document.getElementById("tab-request"),
-  mypage: document.getElementById("tab-mypage"),
-};
+const toast = document.getElementById("toast");
 
-function yen(n) {
-  try { return `¥${Number(n).toLocaleString("ja-JP")}`; } catch { return `¥${n}`; }
-}
-function toast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 1800);
-}
-function setActive(tabBtn) {
-  document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-  tabBtn.classList.add("active");
+// タブ切り替え
+document.getElementById("tab-auction").addEventListener("click", () => renderAuctions());
+document.getElementById("tab-request").addEventListener("click", () => renderRequests());
+document.getElementById("tab-mypage").addEventListener("click", () => renderMyPage());
+
+// トースト表示
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2000);
 }
 
-// ===== Auctions =====
+// ========== オークション ==========
+
+// 出品一覧表示
 async function renderAuctions() {
-  setActive(tabs.auction);
+  const { data, error } = await supabase.from("auctions").select("*").order("inserted_at", { ascending: false });
+  if (error) {
+    console.error(error);
+    showToast("オークション取得エラー");
+    return;
+  }
+
   content.innerHTML = `
-    <div class="card">
-      <h3>出品フォーム</h3>
-      <form id="auctionForm">
-        <div class="input-row">
-          <input id="a_title" type="text" placeholder="商品名" required />
-          <input id="a_price" type="number" min="0" step="100" placeholder="開始価格" required />
-          <input id="a_time" type="text" placeholder="残り時間（例: 2日）" required />
-        </div>
-        <button type="submit">出品する</button>
-      </form>
-    </div>
-    <div id="auctionList"></div>
+    <h2>オークション一覧</h2>
+    <button id="add-auction">＋ 出品する</button>
+    <ul>
+      ${data.map(item => `
+        <li>
+          ${item.title} - ¥${item.price} (${item.time})
+          <button onclick="bidAuction(${item.id}, ${item.price})">入札</button>
+        </li>
+      `).join("")}
+    </ul>
   `;
 
-  document.getElementById("auctionForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const title = document.getElementById("a_title").value.trim();
-    const price = parseInt(document.getElementById("a_price").value, 10);
-    const time = document.getElementById("a_time").value.trim();
-    if (!title || isNaN(price) || !time) return toast("入力を確認してください");
-    const { error } = await sb.from("auctions").insert([{ title, price, time }]);
-    if (error) return toast("出品エラー: " + error.message);
-    toast("出品しました");
-    await loadAuctions();
+  document.getElementById("add-auction").addEventListener("click", () => {
+    const title = prompt("商品名を入力してください");
+    const price = parseInt(prompt("開始価格を入力してください"), 10);
+    if (title && price) addAuction(title, price);
   });
-
-  await loadAuctions();
-
-  // Realtime updates（Postgres changes）
-  sb.channel("auctions-ch")
-    .on("postgres_changes", { event: "*", schema: "public", table: "auctions" }, loadAuctions)
-    .subscribe();
 }
 
-async function loadAuctions() {
-  const list = document.getElementById("auctionList");
-  list.innerHTML = `<div class="card"><p>読み込み中...</p></div>`;
-  const { data, error } = await sb.from("auctions").select("*").order("id", { ascending: false });
+// 出品追加
+async function addAuction(title, price) {
+  const { error } = await supabase.from("auctions").insert([{ title, price, time: "残り2日" }]);
   if (error) {
-    list.innerHTML = `<div class="card"><p>エラー: ${error.message}</p></div>`;
-    return;
+    console.error(error);
+    showToast("出品エラー");
+  } else {
+    showToast("出品しました");
+    renderAuctions();
   }
-  if (!data || data.length === 0) {
-    list.innerHTML = `<div class="card"><p>出品はまだありません</p></div>`;
-    return;
+}
+
+// 入札
+async function bidAuction(id, currentPrice) {
+  const newPrice = currentPrice + 1000;
+  const { error } = await supabase.from("auctions").update({ price: newPrice }).eq("id", id);
+  if (error) {
+    console.error(error);
+    showToast("入札エラー");
+  } else {
+    showToast("入札しました");
+    renderAuctions();
   }
-  list.innerHTML = data.map(a => `
-    <div class="card">
-      <h3>${a.title}</h3>
-      <p>現在価格: ${yen(a.price)}</p>
-      <p>${a.time}</p>
-      <div class="row">
-        <button onclick="bid(${a.id}, ${a.price})">+1,000円 入札</button>
-        <button class="secondary" onclick="customBid(${a.id})">金額指定で入札</button>
-      </div>
-    </div>
-  `).join("");
 }
 
-async function bid(id, currentPrice) {
-  const newPrice = Number(currentPrice) + 1000;
-  const { error } = await sb.from("auctions").update({ price: newPrice }).eq("id", id);
-  if (error) return toast("入札エラー: " + error.message);
-  toast("入札しました");
-}
+// ========== リクエスト ==========
 
-async function customBid(id) {
-  const amt = prompt("入札金額を入力してください（整数）");
-  if (amt === null) return;
-  const price = parseInt(amt, 10);
-  if (isNaN(price) || price <= 0) return toast("金額を確認してください");
-  const { error } = await sb.from("auctions").update({ price }).eq("id", id);
-  if (error) return toast("入札エラー: " + error.message);
-  toast("入札しました");
-}
-
-// ===== Requests (reverse auction) =====
 async function renderRequests() {
-  setActive(tabs.request);
-  content.innerHTML = `
-    <div class="card">
-      <h3>リクエスト投稿</h3>
-      <form id="requestForm">
-        <div class="input-row">
-          <input id="r_want" type="text" placeholder="欲しい商品" required />
-          <input id="r_price" type="number" min="0" step="100" placeholder="希望価格" required />
-        </div>
-        <button type="submit">投稿する</button>
-      </form>
-    </div>
-    <div id="requestList"></div>
-  `;
-
-  document.getElementById("requestForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const want = document.getElementById("r_want").value.trim();
-    const price = parseInt(document.getElementById("r_price").value, 10);
-    if (!want || isNaN(price)) return toast("入力を確認してください");
-    const { error } = await sb.from("requests").insert([{ want, price }]);
-    if (error) return toast("投稿エラー: " + error.message);
-    toast("投稿しました");
-    await loadRequests();
-  });
-
-  await loadRequests();
-
-  // Realtime updates
-  sb.channel("requests-ch")
-    .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, loadRequests)
-    .subscribe();
-}
-
-async function loadRequests() {
-  const list = document.getElementById("requestList");
-  list.innerHTML = `<div class="card"><p>読み込み中...</p></div>`;
-  const { data, error } = await sb.from("requests").select("*").order("id", { ascending: false });
+  const { data, error } = await supabase.from("requests").select("*").order("inserted_at", { ascending: false });
   if (error) {
-    list.innerHTML = `<div class="card"><p>エラー: ${error.message}</p></div>`;
+    console.error(error);
+    showToast("リクエスト取得エラー");
     return;
   }
-  if (!data || data.length === 0) {
-    list.innerHTML = `<div class="card"><p>リクエストはまだありません</p></div>`;
-    return;
-  }
-  list.innerHTML = data.map(r => `
-    <div class="card">
-      <h3>${r.want}</h3>
-      <p>希望価格: ${yen(r.price)}</p>
-      <div class="row">
-        <button class="secondary" onclick="propose(${r.id})">提案する</button>
-      </div>
-    </div>
-  `).join("");
-}
-
-function propose(id) {
-  const text = prompt("提案内容を入力してください（例：商品状態・価格など）");
-  if (text === null || !text.trim()) return;
-  // コメント永続化は後続拡張（commentsテーブル追加）で対応
-  toast("提案を送信しました");
-}
-
-// ===== My page =====
-async function renderMyPage() {
-  setActive(tabs.mypage);
-
-  // count は head: true では data返さないため別クエリにするか countを受け取る
-  const { count: aCount, error: aErr } = await sb
-    .from("auctions")
-    .select("*", { count: "exact", head: true });
-
-  const { count: rCount, error: rErr } = await sb
-    .from("requests")
-    .select("*", { count: "exact", head: true });
 
   content.innerHTML = `
-    <div class="card">
-      <h3>マイページ（概要）</h3>
-      <p>出品数: ${aErr ? "-" : (aCount ?? 0)} 件</p>
-      <p>リクエスト数: ${rErr ? "-" : (rCount ?? 0)} 件</p>
-      <p class="muted">認証・履歴は後続で拡張予定</p>
-    </div>
+    <h2>リクエスト一覧</h2>
+    <button id="add-request">＋ リクエストする</button>
+    <ul>
+      ${data.map(item => `
+        <li>${item.want} - 希望価格 ¥${item.price}</li>
+      `).join("")}
+    </ul>
+  `;
+
+  document.getElementById("add-request").addEventListener("click", () => {
+    const want = prompt("欲しい商品を入力してください");
+    const price = parseInt(prompt("希望価格を入力してください"), 10);
+    if (want && price) addRequest(want, price);
+  });
+}
+
+async function addRequest(want, price) {
+  const { error } = await supabase.from("requests").insert([{ want, price }]);
+  if (error) {
+    console.error(error);
+    showToast("リクエストエラー");
+  } else {
+    showToast("リクエストを追加しました");
+    renderRequests();
+  }
+}
+
+// ========== マイページ ==========
+
+async function renderMyPage() {
+  const { count: auctionCount } = await supabase.from("auctions").select("*", { count: "exact", head: true });
+  const { count: requestCount } = await supabase.from("requests").select("*", { count: "exact", head: true });
+
+  content.innerHTML = `
+    <h2>マイページ</h2>
+    <p>出品数: ${auctionCount}</p>
+    <p>リクエスト数: ${requestCount}</p>
   `;
 }
 
-// ===== Tab events & initial render =====
-tabs.auction.addEventListener("click", renderAuctions);
-tabs.request.addEventListener("click", renderRequests);
-tabs.mypage.addEventListener("click", renderMyPage);
-
+// ========== 初期表示 ==========
 renderAuctions();
 
-// Expose for inline handlers
-window.bid = bid;
-window.customBid = customBid;
-window.propose = propose;
+// ========== Realtime購読 ==========
+supabase.channel("public:auctions")
+  .on("postgres_changes", { event: "*", schema: "public", table: "auctions" }, payload => {
+    console.log("auctions changed", payload);
+    renderAuctions();
+  })
+  .subscribe();
+
+supabase.channel("public:requests")
+  .on("postgres_changes", { event: "*", schema: "public", table: "requests" }, payload => {
+    console.log("requests changed", payload);
+    renderRequests();
+  })
+  .subscribe();
