@@ -1,1 +1,92 @@
+-- =========================================================
+-- TASQ JAPAN Smartphone MVP: Auctions + Requests schema
+-- =========================================================
+
+-- 1) Tables
+create table if not exists public.auctions (
+  id           bigint generated always as identity primary key,
+  title        text    not null,
+  price        int     not null,
+  time         text    not null, -- e.g. "残り2日"
+  inserted_at  timestamptz default now()
+);
+
+create table if not exists public.requests (
+  id           bigint generated always as identity primary key,
+  want         text    not null,
+  price        int     not null,
+  inserted_at  timestamptz default now()
+);
+
+-- 2) Helpful indexes (optional but recommended)
+create index if not exists idx_auctions_inserted_at on public.auctions (inserted_at desc);
+create index if not exists idx_requests_inserted_at on public.requests (inserted_at desc);
+
+-- 3) Enable Row Level Security (RLS)
+alter table public.auctions enable row level security;
+alter table public.requests enable row level security;
+
+-- 4) Policies for anonymous public access (MVP)
+--    Allow SELECT / INSERT / UPDATE for everyone (public anon).
+--    NOTE: For production, tighten these policies (Auth required).
+drop policy if exists auctions_select_public on public.auctions;
+drop policy if exists auctions_insert_public on public.auctions;
+drop policy if exists auctions_update_public on public.auctions;
+
+create policy auctions_select_public
+  on public.auctions
+  for select
+  using (true);
+
+create policy auctions_insert_public
+  on public.auctions
+  for insert
+  with check (true);
+
+create policy auctions_update_public
+  on public.auctions
+  for update
+  using (true)
+  with check (true);
+
+drop policy if exists requests_select_public on public.requests;
+drop policy if exists requests_insert_public on public.requests;
+drop policy if exists requests_update_public on public.requests;
+
+create policy requests_select_public
+  on public.requests
+  for select
+  using (true);
+
+create policy requests_insert_public
+  on public.requests
+  for insert
+  with check (true);
+
+create policy requests_update_public
+  on public.requests
+  for update
+  using (true)
+  with check (true);
+
+-- 5) Supabase Realtime: add tables to publication
+--    Enables postgres_changes subscriptions for these tables.
+alter publication supabase_realtime add table public.auctions;
+alter publication supabase_realtime add table public.requests;
+
+-- 6) Seed data (optional)
+--    Run once — comment out if not needed.
+insert into public.auctions (title, price, time)
+values
+  ('ノートPC', 20000, '残り2日'),
+  ('ギター',   15000, '残り5時間')
+on conflict do nothing;
+
+insert into public.requests (want, price)
+values
+  ('iPhone 13', 40000),
+  ('自転車',    10000)
+on conflict do nothing;
+
+-- Done.
 
