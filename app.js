@@ -1,6 +1,9 @@
 // ===== Supabase client =====
+// 必ず差し替え：自分のプロジェクトのURLとanon key
 const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"; // ←置き換え
 const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";               // ←置き換え
+
+// CDN読み込み時は global の supabase を使用
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ===== UI helpers =====
@@ -57,7 +60,7 @@ async function renderAuctions() {
 
   await loadAuctions();
 
-  // Realtime updates
+  // Realtime updates（Postgres changes）
   sb.channel("auctions-ch")
     .on("postgres_changes", { event: "*", schema: "public", table: "auctions" }, loadAuctions)
     .subscribe();
@@ -167,21 +170,28 @@ async function loadRequests() {
 function propose(id) {
   const text = prompt("提案内容を入力してください（例：商品状態・価格など）");
   if (text === null || !text.trim()) return;
-  // まずはUI上の体験のみ（DBは後続拡張でcommentsテーブル追加）
+  // コメント永続化は後続拡張（commentsテーブル追加）で対応
   toast("提案を送信しました");
 }
 
 // ===== My page =====
 async function renderMyPage() {
   setActive(tabs.mypage);
-  const { data: aCount } = await sb.from("auctions").select("id", { count: "exact", head: true });
-  const { data: rCount } = await sb.from("requests").select("id", { count: "exact", head: true });
+
+  // count は head: true では data返さないため別クエリにするか countを受け取る
+  const { count: aCount, error: aErr } = await sb
+    .from("auctions")
+    .select("*", { count: "exact", head: true });
+
+  const { count: rCount, error: rErr } = await sb
+    .from("requests")
+    .select("*", { count: "exact", head: true });
 
   content.innerHTML = `
     <div class="card">
       <h3>マイページ（概要）</h3>
-      <p>出品数: ${aCount?.length ?? 0} 件</p>
-      <p>リクエスト数: ${rCount?.length ?? 0} 件</p>
+      <p>出品数: ${aErr ? "-" : (aCount ?? 0)} 件</p>
+      <p>リクエスト数: ${rErr ? "-" : (rCount ?? 0)} 件</p>
       <p class="muted">認証・履歴は後続で拡張予定</p>
     </div>
   `;
@@ -194,6 +204,7 @@ tabs.mypage.addEventListener("click", renderMyPage);
 
 renderAuctions();
 
+// Expose for inline handlers
 window.bid = bid;
 window.customBid = customBid;
 window.propose = propose;
