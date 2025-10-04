@@ -15,14 +15,15 @@
 
   <main id="content" class="content"></main>
 
-  <nav class="bottom-nav">
-    <button id="tab-auction" aria-label="オークション" class="nav-btn active">オークション</button>
-    <button id="tab-request" aria-label="リクエスト" class="nav-btn">リクエスト</button>
-    <button id="tab-mypage" aria-label="マイページ" class="nav-btn">マイページ</button>
+  <nav class="bottom-nav" aria-label="主ナビゲーション">
+    <button id="tab-auction" class="nav-btn active">オークション</button>
+    <button id="tab-request" class="nav-btn">リクエスト</button>
+    <button id="tab-mypage" class="nav-btn">マイページ</button>
   </nav>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <!-- Supabase v2 CDN -->
   <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/supabase.js"></script>
   <script src="app.js"></script>
   <script>
