@@ -1,26 +1,34 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>TASQ JAPAN</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#222222" />
 </head>
 <body>
-  <header>
+  <header class="app-header">
     <h1>TASQ JAPAN</h1>
   </header>
 
-  <main id="content"></main>
+  <main id="content" class="content"></main>
 
   <nav class="bottom-nav">
-    <button id="tab-auction">オークション</button>
-    <button id="tab-request">リクエスト</button>
-    <button id="tab-mypage">マイページ</button>
+    <button id="tab-auction" aria-label="オークション" class="nav-btn active">オークション</button>
+    <button id="tab-request" aria-label="リクエスト" class="nav-btn">リクエスト</button>
+    <button id="tab-mypage" aria-label="マイページ" class="nav-btn">マイページ</button>
   </nav>
 
-  <script src="https://unpkg.com/@supabase/supabase-js"></script>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/supabase.js"></script>
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    }
+  </script>
 </body>
 </html>
