@@ -20,7 +20,7 @@ export default function Home() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>ユーザー一覧</h1>
+      <h1>TASQ JAPAN ユーザー一覧</h1>
       <ul>
         {users.map(user => (
           <li key={user.id}>
