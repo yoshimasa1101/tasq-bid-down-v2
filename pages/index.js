@@ -1,33 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
-import { useEffect, useState } from 'react'
 
+// Supabase クライアントを初期化
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 )
 
 export default function Home() {
-  const [users, setUsers] = useState([])
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const { data, error } = await supabase.from('users').select('*')
-      if (error) console.error(error)
-      else setUsers(data)
-    }
-    fetchUsers()
-  }, [])
-
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>TASQ JAPAN ユーザー一覧</h1>
-      <ul>
-        {users.map(user => (
-          <li key={user.id}>
-            {user.name} ({user.email})
-          </li>
-        ))}
-      </ul>
-    </div>
+    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
+      <h1>Hello TASQ 👋</h1>
+      <p>Supabase URL: {process.env.NEXT_PUBLIC_SUPABASE_URL}</p>
+      <p>接続テスト用の最小構成です。</p>
+    </main>
   )
 }
