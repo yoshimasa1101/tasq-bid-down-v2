@@ -1,12 +1,13 @@
-# Next.js + Supabase users list (minimal)
+# tasq-bid-down-v2 (Next.js + Supabase 最小構成)
 
-## Setup
-1. Supabase で Project を作成し、`users` テーブルを用意（例: id serial, name text, username text）。
-2. `.env.local` に環境変数を設定：
-   - `NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=xxxx`
+このリポジトリは Vercel で動作する最小構成です。
 
-## Dev
+## 必要な環境変数（Vercel の Environment Variables に設定）
+- NEXT_PUBLIC_SUPABASE_URL = Supabase の Project URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY = Supabase の anon public key
+
+## 開発
 ```bash
-npm i
+npm install
 npm run dev
+# http://localhost:3000
