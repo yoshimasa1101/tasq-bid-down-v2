@@ -1,18 +1,9 @@
-import UsersList from '@/components/UsersList';
-
+// app/page.tsx
 export default function HomePage() {
   return (
-    <main style={{ padding: 24 }}>
-      <nav style={{ display: 'flex', gap: 12 }}>
-        <a href="/">ホーム</a>
-        <a href="/request">リクエスト</a>
-      </nav>
-
-      <h1 style={{ marginTop: 16 }}>TASQ JAPAN</h1>
-      <p>Supabase の users テーブルを表示します。</p>
-
-      {/* ユーザー一覧を表示 */}
-      <UsersList />
+    <main>
+      <h1>TASQ JAPAN</h1>
+      <p>逆オークションMVPへようこそ。</p>
     </main>
   );
 }
