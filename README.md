@@ -1,24 +1,10 @@
-# tasq-bid-down-v2 (Next.js + Supabase 最小構成)
+# TASQ JAPAN - 逆オークションMVP
 
-このリポジトリは Vercel で動作する最小構成です。
-
-## 必要な環境変数（Vercel の Environment Variables に設定）
-- NEXT_PUBLIC_SUPABASE_URL = Supabase の Project URL
-- NEXT_PUBLIC_SUPABASE_ANON_KEY = Supabase の anon public key
-
-## 開発
-```bash
-npm install
-npm run dev
-# http://localhost:3000
+このリポジトリは **Next.js + Supabase** を用いた最小構成のアプリケーションです。  
+Vercel 上でデプロイされ、Supabase をバックエンドとして利用します。  
 
 ---
 
-### lib/supabaseClient.js
-```js
-import { createClient } from '@supabase/supabase-js'
+## 🚀 必要環境変数（Vercel の Environment Variables に設定）
 
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
+以下の環境変数を Vercel の **Production** に設定してください。
