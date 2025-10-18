@@ -1,11 +1,15 @@
-import UsersList from '@/components/UsersList';
+import { Header } from "./components/Header";
+import { Main } from "./components/Main";
+import { Footer } from "./components/Footer";
 
-export default function HomePage() {
+function App() {
   return (
-    <main>
-      <h1>TASQ JAPAN</h1>
-      <p>逆オークションMVPへようこそ。</p>
-      <UsersList />
-    </main>
+    <div>
+      <Header />
+      <Main />
+      <Footer />
+    </div>
   );
 }
+
+export default App;
