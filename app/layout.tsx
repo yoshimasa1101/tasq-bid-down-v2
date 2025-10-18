@@ -1,6 +1,5 @@
 // app/layout.tsx
-
-import './globals.css'; // グローバルCSSがある場合のみ。なければこの行は削除してOK
+import './globals.css';
 
 export const metadata = {
   title: 'TASQ JAPAN',
